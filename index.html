@@ -1105,6 +1105,85 @@ function printDetail() {
   win.document.close(); win.print();
 }
 
+// ─── COMPARE ───────────────────────────────────────────────
+function renderCompare() {
+  const lib = getLib();
+  ['compareA','compareB'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Choose…</option>';
+    lib.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.id;
+      opt.textContent = e.title || 'Untitled';
+      sel.appendChild(opt);
+    });
+  });
+  const res = document.getElementById('compareResult');
+  if (res) res.classList.add('hidden');
+  clearErr('compareError');
+}
+
+async function runCompare() {
+  const key = getKey();
+  if (!key) { showErr('compareError','No API key set.'); return; }
+  const aId = document.getElementById('compareA').value;
+  const bId = document.getElementById('compareB').value;
+  if (!aId || !bId) { showErr('compareError','Please select two analyses.'); return; }
+  if (aId === bId) { showErr('compareError','Please select two different analyses.'); return; }
+  const lib = getLib();
+  const a = lib.find(e => e.id === aId);
+  const b = lib.find(e => e.id === bId);
+  if (!a || !b) return;
+  clearErr('compareError');
+  const btn = document.querySelector('[onclick="runCompare()"]');
+  btn.disabled = true; btn.textContent = 'Comparing…';
+  const dot = document.getElementById('pulseDot3');
+  if (dot) dot.classList.add('on');
+  try {
+    const prompt = 'Compare these two Signal9 Studio analyses and tell me: 1. What threads, themes, or visual qualities they share. 2. Whether they belong in the same collection and why. 3. What tensions or productive contrasts exist between them. 4. Specific directions or piece ideas that emerge from reading them together.\n\nAnalysis A - "' + a.title + '":\nNarrative: ' + a.narrative + '\nThemes: ' + (a.themes?.items||[]).join('; ') + '\nSeeds: ' + (a.seeds?.items||[]).join('; ') + '\n\nAnalysis B - "' + b.title + '":\nNarrative: ' + b.narrative + '\nThemes: ' + (b.themes?.items||[]).join('; ') + '\nSeeds: ' + (b.seeds?.items||[]).join('; ') + '\n\nWrite in Signal9 voice: precise, considered, unsentimental. 4-6 paragraphs.';
+    const res = await callClaude(key, "You are a creative director for Signal9 Studio. Voice: precise, restrained, elegiac.", prompt, 1000);
+    document.getElementById('compareText').textContent = res;
+    document.getElementById('compareResult').classList.remove('hidden');
+    document.getElementById('compareResult').scrollIntoView({ behavior:'smooth' });
+  } catch(e) {
+    showErr('compareError', 'Compare failed: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Compare';
+    if (dot) dot.classList.remove('on');
+  }
+}
+
+// ─── RENAME ───────────────────────────────────────────────
+function startRenameDetail() {
+  const titleEl = document.getElementById('detailTitle');
+  const wrapEl = document.getElementById('detailRenameWrap');
+  const inputEl = document.getElementById('detailRenameInput');
+  if (!titleEl || !wrapEl || !inputEl) return;
+  inputEl.value = titleEl.textContent;
+  titleEl.classList.add('hidden');
+  wrapEl.classList.remove('hidden');
+  inputEl.focus();
+  inputEl.select();
+}
+function cancelRename() {
+  document.getElementById('detailRenameWrap').classList.add('hidden');
+  document.getElementById('detailTitle').classList.remove('hidden');
+}
+function commitRename() {
+  const v = document.getElementById('detailRenameInput').value.trim();
+  if (!v) { cancelRename(); return; }
+  const lib = getLib();
+  const idx = lib.findIndex(e => e.id === S.currentDetailId);
+  if (idx < 0) { cancelRename(); return; }
+  lib[idx].title = v; saveLib(lib);
+  document.getElementById('detailTitle').textContent = v;
+  cancelRename();
+  const ns = document.getElementById('notesSaved');
+  ns.classList.add('show');
+  setTimeout(() => ns.classList.remove('show'), 1500);
+}
+
 // ─── SHARE CARD ───────────────────────────────────
 function buildShareCard(data) {
   document.getElementById('shareTitle').textContent=data.title||'';
