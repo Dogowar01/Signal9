@@ -578,7 +578,7 @@ input[type="file"] { display: none; }
   <button class="detail-back" onclick="backFromDetail()">← Library</button>
   <div id="detailImg"></div>
   <h1 class="output-title" id="detailTitle" onclick="startRenameDetail()" title="Tap to rename" style="cursor:pointer;"></h1>
-  <div id="detailRenameWrap" class="hidden" style="margin-bottom:8px;"><input type="text" id="detailRenameInput" style="font-size:22px;font-style:italic;font-weight:300;" onkeydown="if(event.key==='Enter')commitRename();if(event.key==='Escape')cancelRename()"><div style="display:flex;gap:10px;margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="commitRename()">Save</button><button class="btn btn-ghost btn-sm" onclick="cancelRename()">Cancel</button></div></div>
+  <div id="detailRenameWrap" class="hidden" style="margin-bottom:8px;"><input type="text" id="detailRenameInput" style="font-size:22px;font-style:italic;font-weight:300;width:100%;" onkeydown="if(event.key==='Enter')commitRename();if(event.key==='Escape')cancelRename()"><div style="display:flex;gap:10px;margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="commitRename()">Save</button><button class="btn btn-ghost btn-sm" onclick="cancelRename()">Cancel</button></div></div>
   <div class="output-meta" id="detailMeta"></div>
   <div class="narrative-block">
     <div class="narrative-eyebrow">Atmospheric Reading</div>
@@ -740,12 +740,13 @@ function showScreen(id) {
 }
 
 function navTo(s) {
-  const map = { new:'New', library:'Library', themes:'Themes', collections:'Collections' };
+  const map = { new:'New', library:'Library', themes:'Themes', compare:'Compare', collections:'Collections' };
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('nav-' + s).classList.add('active');
+  const navEl = document.getElementById('nav-' + s); if(navEl) navEl.classList.add('active');
   if (s === 'library') renderLibrary();
   if (s === 'themes') renderThemes();
   if (s === 'collections') renderCollections();
+  if (s === 'compare') renderCompare();
   showScreen(map[s]);
 }
 
