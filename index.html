@@ -743,11 +743,16 @@ function navTo(s) {
   const map = { new:'New', library:'Library', themes:'Themes', compare:'Compare', collections:'Collections' };
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const navEl = document.getElementById('nav-' + s); if(navEl) navEl.classList.add('active');
-  if (s === 'library') renderLibrary();
-  if (s === 'themes') renderThemes();
-  if (s === 'collections') renderCollections();
-  if (s === 'compare') renderCompare();
   showScreen(map[s]);
+  // Render AFTER screen is visible so DOM is accessible and errors surface
+  try {
+    if (s === 'library') renderLibrary();
+    else if (s === 'themes') renderThemes();
+    else if (s === 'collections') renderCollections();
+    else if (s === 'compare') renderCompare();
+  } catch(err) {
+    console.error('navTo render error:', err);
+  }
 }
 
 // ─── SETUP ────────────────────────────────────────
@@ -1108,21 +1113,34 @@ function printDetail() {
 
 // ─── COMPARE ───────────────────────────────────────────────
 function renderCompare() {
-  const lib = getLib();
-  ['compareA','compareB'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Choose…</option>';
-    lib.forEach(e => {
-      const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = e.title || 'Untitled';
-      sel.appendChild(opt);
+  try {
+    const lib = getLib();
+    ['compareA','compareB'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) { console.warn('Compare select not found:', id); return; }
+      // Keep current selection if possible
+      const prev = sel.value;
+      sel.innerHTML = '';
+      const blank = document.createElement('option');
+      blank.value = ''; blank.textContent = 'Choose…';
+      sel.appendChild(blank);
+      lib.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.id;
+        opt.textContent = e.title || 'Untitled';
+        sel.appendChild(opt);
+      });
+      if (prev) sel.value = prev;
     });
-  });
-  const res = document.getElementById('compareResult');
-  if (res) res.classList.add('hidden');
-  clearErr('compareError');
+    const res = document.getElementById('compareResult');
+    if (res) res.classList.add('hidden');
+    const errEl = document.getElementById('compareError');
+    if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
+  } catch(err) {
+    console.error('renderCompare error:', err);
+    const errEl = document.getElementById('compareError');
+    if (errEl) { errEl.textContent = 'Error loading analyses: ' + err.message; errEl.classList.add('show'); }
+  }
 }
 
 async function runCompare() {
