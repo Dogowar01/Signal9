@@ -177,6 +177,7 @@ input[type="file"] { display: none; }
 
 /* ── OUTPUT ── */
 .output-title { font-size: 34px; font-weight: 300; font-style: italic; line-height: 1.18; color: var(--text); margin-bottom: 8px; }
+.output-title[title] { border-bottom: 1px dashed rgba(181,98,42,0.25); display: inline-block; }
 .output-meta { font-family: 'Cormorant SC'; font-size: 11px; letter-spacing: 0.25em; color: var(--text-muted); margin-bottom: 28px; }
 
 .narrative-block {
@@ -358,6 +359,9 @@ input[type="file"] { display: none; }
   <button class="nav-item" id="nav-themes" onclick="navTo('themes')">
     <span class="nav-icon">◈</span><span class="nav-label">Themes</span>
   </button>
+  <button class="nav-item" id="nav-compare" onclick="navTo('compare')">
+    <span class="nav-icon">⇌</span><span class="nav-label">Compare</span>
+  </button>
   <button class="nav-item" id="nav-collections" onclick="navTo('collections')">
     <span class="nav-icon">⊟</span><span class="nav-label">Collections</span>
   </button>
@@ -510,8 +514,11 @@ input[type="file"] { display: none; }
       <span id="libCount" style="font-family:'Cormorant SC';font-size:11px;letter-spacing:0.25em;color:var(--text-muted)"></span>
     </div>
   </div>
+  <div style="margin-bottom:12px;">
+    <input type="text" id="libSearch" placeholder="Search analyses…" oninput="renderLibrary()" style="font-size:17px;">
+  </div>
   <div class="lib-toolbar">
-    <select id="libFilter" onchange="renderLibrary()"><option value="">All analyses</option></select>
+    <select id="libFilter" onchange="renderLibrary()"><option value="">All collections</option></select>
     <div class="lib-view-toggle">
       <button class="lib-view-btn active" id="viewGrid" onclick="setLibView('grid')" title="Grid">⊞</button>
       <button class="lib-view-btn" id="viewMood" onclick="setLibView('mood')" title="Mood board">▦</button>
@@ -570,13 +577,15 @@ input[type="file"] { display: none; }
   </div>
   <button class="detail-back" onclick="backFromDetail()">← Library</button>
   <div id="detailImg"></div>
-  <h1 class="output-title" id="detailTitle"></h1>
+  <h1 class="output-title" id="detailTitle" onclick="startRenameDetail()" title="Tap to rename" style="cursor:pointer;"></h1>
+  <div id="detailRenameWrap" class="hidden" style="margin-bottom:8px;"><input type="text" id="detailRenameInput" style="font-size:22px;font-style:italic;font-weight:300;" onkeydown="if(event.key==='Enter')commitRename();if(event.key==='Escape')cancelRename()"><div style="display:flex;gap:10px;margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="commitRename()">Save</button><button class="btn btn-ghost btn-sm" onclick="cancelRename()">Cancel</button></div></div>
   <div class="output-meta" id="detailMeta"></div>
   <div class="narrative-block">
     <div class="narrative-eyebrow">Atmospheric Reading</div>
     <div class="narrative-text" id="detailNarrative"></div>
   </div>
   <div class="accord-list" id="detailAccordList"></div>
+  <div id="detailRefinements"></div>
   <div class="divider"></div>
   <div class="field-group notes-field">
     <div class="eyebrow accent">Your Notes</div>
@@ -588,6 +597,33 @@ input[type="file"] { display: none; }
     <button class="btn btn-sm" onclick="showShareCardFromDetail()">↗ Share Card</button>
     <button class="btn btn-ghost btn-sm" onclick="printDetail()">⊟ Export PDF</button>
     <button class="btn btn-danger btn-sm" onclick="deleteCurrentDetail()">⊖ Delete</button>
+  </div>
+</div>
+
+<!-- ═══ COMPARE ═══ -->
+<div class="screen scroll-y" id="screenCompare">
+  <div class="app-header">
+    <div class="logo">
+      <span class="logo-studio">Signal</span><span class="logo-mark">9</span><span class="logo-sub">Compare</span>
+    </div>
+    <div class="header-right"><div class="pulse-dot" id="pulseDot3"></div></div>
+  </div>
+  <p style="font-size:17px;font-style:italic;color:var(--text-muted);margin-bottom:24px;line-height:1.65;">Select two saved analyses to find what connects them — shared threads, collection potential, tensions between them.</p>
+  <div class="field-group">
+    <div class="eyebrow">First Analysis</div>
+    <select id="compareA" style="font-size:17px;"><option value="">Choose…</option></select>
+  </div>
+  <div class="field-group">
+    <div class="eyebrow">Second Analysis</div>
+    <select id="compareB" style="font-size:17px;"><option value="">Choose…</option></select>
+  </div>
+  <div class="error-box" id="compareError"></div>
+  <button class="btn btn-primary btn-full" onclick="runCompare()">Compare</button>
+  <div id="compareResult" class="hidden" style="margin-top:28px;">
+    <div class="narrative-block">
+      <div class="narrative-eyebrow">Connection Reading</div>
+      <div class="narrative-text" id="compareText" style="font-style:normal;font-size:18px;line-height:1.78;"></div>
+    </div>
   </div>
 </div>
 
@@ -669,11 +705,29 @@ let S = {
 };
 
 // ─── STORAGE ──────────────────────────────────────
-const getKey = () => localStorage.getItem('s9_key');
-const getLib = () => JSON.parse(localStorage.getItem('s9_lib') || '[]');
-const saveLib = l => localStorage.setItem('s9_lib', JSON.stringify(l));
-const getColls = () => JSON.parse(localStorage.getItem('s9_colls') || '["The Quiet Fracture"]');
-const saveColls = c => localStorage.setItem('s9_colls', JSON.stringify(c));
+// Resilient key storage: writes to multiple locations, reads from any available
+function persistKey(v) {
+  try { localStorage.setItem('s9_key', v); } catch(e) {}
+  try { sessionStorage.setItem('s9_key', v); } catch(e) {}
+  try { document.cookie = `s9k=${encodeURIComponent(v)};max-age=31536000;SameSite=Strict`; } catch(e) {}
+  window._s9key = v;
+}
+function getKey() {
+  if (window._s9key) return window._s9key;
+  try { const v=localStorage.getItem('s9_key'); if(v){window._s9key=v;return v;} } catch(e) {}
+  try { const v=sessionStorage.getItem('s9_key'); if(v){window._s9key=v;return v;} } catch(e) {}
+  try {
+    const m=document.cookie.match(/s9k=([^;]+)/);
+    if(m){const v=decodeURIComponent(m[1]);window._s9key=v;return v;}
+  } catch(e) {}
+  return null;
+}
+function clearKey() { window._s9key=null; try{localStorage.removeItem('s9_key');}catch(e){} try{sessionStorage.removeItem('s9_key');}catch(e){} try{document.cookie='s9k=;max-age=0';}catch(e){} }
+
+const getLib = () => { try { return JSON.parse(localStorage.getItem('s9_lib') || '[]'); } catch(e){ return []; } };
+const saveLib = l => { try { localStorage.setItem('s9_lib', JSON.stringify(l)); } catch(e){} };
+const getColls = () => { try { return JSON.parse(localStorage.getItem('s9_colls') || '["The Quiet Fracture"]'); } catch(e){ return ["The Quiet Fracture"]; } };
+const saveColls = c => { try { localStorage.setItem('s9_colls', JSON.stringify(c)); } catch(e){} };
 
 // ─── NAVIGATION ───────────────────────────────────
 function showScreen(id) {
@@ -708,7 +762,7 @@ function closeKeyModal() { document.getElementById('keyModal').classList.remove(
 function updateKey() {
   const v = document.getElementById('keyModalInput').value.trim();
   if (!v.startsWith('sk-')) { alert('Invalid key.'); return; }
-  localStorage.setItem('s9_key', v); closeKeyModal();
+  persistKey(v); closeKeyModal();
 }
 
 // ─── TABS ─────────────────────────────────────────
@@ -824,6 +878,13 @@ async function refine(type) {
     document.getElementById('refineText').textContent = res;
     document.getElementById('refineResult').classList.remove('hidden');
     document.getElementById('refineResult').scrollIntoView({behavior:'smooth',block:'start'});
+    // Store refinement on current analysis so it gets saved
+    if (!S.currentAnalysis._refinements) S.currentAnalysis._refinements = [];
+    const label = {darker:'Pushed Darker',grief:'Grief Thread',titles:'More Title Seeds',palette:'Expanded Palette',statement:'Statement Copy',collection:'Collection Direction'}[type]||type;
+    // Replace or add this refinement type
+    const idx = S.currentAnalysis._refinements.findIndex(r=>r.type===type);
+    if (idx>=0) S.currentAnalysis._refinements[idx]={type,label,text:res,ts:Date.now()};
+    else S.currentAnalysis._refinements.push({type,label,text:res,ts:Date.now()});
   } catch(e) { showErr('outputError','Refinement failed: '+e.message); }
   finally { btn.classList.remove('loading'); setPulse(false); }
 }
@@ -874,8 +935,12 @@ function setLibView(v) {
 }
 
 function renderLibrary() {
-  const lib=getLib(); const filter=document.getElementById('libFilter').value;
-  const filtered=filter?lib.filter(e=>e.collections&&e.collections.includes(filter)):lib;
+  const lib=getLib();
+  const filter=document.getElementById('libFilter').value;
+  const searchEl=document.getElementById('libSearch');
+  const query=searchEl?searchEl.value.trim().toLowerCase():'';
+  let filtered=filter?lib.filter(e=>e.collections&&e.collections.includes(filter)):lib;
+  if (query) filtered=filtered.filter(e=>(e.title||''). toLowerCase().includes(query)||(e.narrative||''). toLowerCase().includes(query)||(e._notes||''). toLowerCase().includes(query));
   const sel=document.getElementById('libFilter');
   const cur=sel.value; sel.innerHTML='<option value="">All analyses</option>';
   getColls().forEach(c=>{sel.innerHTML+=`<option value="${c}">${c}</option>`;});
@@ -917,26 +982,38 @@ function renderThemes() {
   const empty=document.getElementById('themesEmpty');
   if (!lib.length){empty.classList.remove('hidden');return;}
   empty.classList.add('hidden');
-  const counts={};
+  // Collect whole theme phrases, clean them lightly, then group near-duplicates
+  const rawPhrases=[];
   lib.forEach(e=>{
     if (e.themes?.items) e.themes.items.forEach(item=>{
-      // extract key words from each theme item
-      item.toLowerCase().split(/[\s,;:—–-]+/).forEach(word=>{
-        word=word.replace(/[^a-z]/g,'');
-        if (word.length>3 && !['this','that','with','from','into','through','against','their','have','been','which','also','more','some','each','when','than','only','such','very','just','like','what','over','under','between'].includes(word)){
-          counts[word]=(counts[word]||0)+1;
-        }
-      });
+      // Take just the first clause of each theme item (before any colon or dash)
+      const clean=item.split(/[:\-—]/)[0].trim().toLowerCase().replace(/[^a-z\s]/g,'').trim();
+      if (clean.length>2) rawPhrases.push(clean);
     });
   });
-  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  // Count exact matches first, then group by significant shared words
+  const counts={};
+  rawPhrases.forEach(p=>{ counts[p]=(counts[p]||0)+1; });
+  // Also extract 1-2 word key concepts from longer phrases for grouping
+  const conceptCounts={};
+  Object.entries(counts).forEach(([phrase,n])=>{
+    const words=phrase.split(/\s+/).filter(w=>w.length>3&&!['this','that','with','from','into','through','against','their','have','been','which','also','more','some','each','when','than','only','such','very','just','like','what','over','under','between','toward','within','across','about','where'].includes(w));
+    words.forEach(w=>{ conceptCounts[w]=(conceptCounts[w]||0)+n; });
+  });
+  // Merge: if a phrase appears 2+ times use it; otherwise use concept words
+  const merged={};
+  Object.entries(counts).filter(([,n])=>n>1).forEach(([p,n])=>{ merged[p]=n; });
+  Object.entries(conceptCounts).forEach(([w,n])=>{
+    if (!Object.keys(merged).some(p=>p.includes(w))) merged[w]=n;
+  });
+  const sorted=Object.entries(merged).sort((a,b)=>b[1]-a[1]).slice(0,20);
   if (!sorted.length){empty.classList.remove('hidden');return;}
   const max=sorted[0][1];
-  sorted.forEach(([word,count],i)=>{
+  sorted.forEach(([phrase,count],i)=>{
     const item=document.createElement('div'); item.className='theme-bar-item'; item.style.animationDelay=(i*0.04)+'s';
     item.innerHTML=`
       <div class="theme-bar-label">
-        <span class="theme-bar-word">${word}</span>
+        <span class="theme-bar-word">${phrase}</span>
         <span class="theme-bar-count">${count} ${count===1?'time':'times'}</span>
       </div>
       <div class="theme-bar-track"><div class="theme-bar-fill" style="width:${Math.round((count/max)*100)}%"></div></div>`;
@@ -980,6 +1057,19 @@ function openDetail(id) {
   document.getElementById('detailNotes').value=entry._notes||'';
   document.getElementById('notesSaved').classList.remove('show');
   renderAccordions('detailAccordList',entry);
+  // Render saved refinements if any
+  const refEl=document.getElementById('detailRefinements'); 
+  if(refEl){
+    refEl.innerHTML='';
+    if(entry._refinements&&entry._refinements.length){
+      const header=document.createElement('div'); header.className='eyebrow accent'; header.style.marginBottom='12px'; header.textContent='Saved Refinements'; refEl.appendChild(header);
+      entry._refinements.forEach(r=>{
+        const block=document.createElement('div'); block.className='narrative-block'; block.style.marginBottom='16px';
+        block.innerHTML=`<div class="narrative-eyebrow">${r.label}</div><div class="narrative-text" style="font-style:normal;font-size:18px;">${r.text}</div>`;
+        refEl.appendChild(block);
+      });
+    }
+  }
   showScreen('Detail');
 }
 
