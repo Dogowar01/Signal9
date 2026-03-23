@@ -785,7 +785,7 @@ function navTo(s) {
 function saveApiKey() {
   const v = document.getElementById('apiKeyInput').value.trim();
   if (!v.startsWith('sk-')) { showErr('setupError','That doesn\'t look like a valid key.'); return; }
-  localStorage.setItem('s9_key', v);
+  persistKey(v);
   document.getElementById('bottomNav').style.display = 'flex';
   showScreen('New');
 }
