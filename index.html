@@ -560,6 +560,24 @@ input[type="file"] { display: none; }
     <button class="btn btn-ghost btn-full" onclick="goNew()">↩ New Analysis</button>
   </div>
   <div class="error-box mt8" id="outputError"></div>
+
+  <div style="margin-top:8px;">
+    <button class="btn btn-ghost btn-full" id="journalBtn" onclick="writeSessionJournal()" style="border-color:rgba(181,98,42,0.2);font-size:11px;">&#10022; Write Session Journal Entry</button>
+    <div id="journalResult" class="hidden" style="margin-top:16px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+        <div style="padding:18px 20px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:12px;" id="journalDate"></div>
+          <div id="journalText" style="font-size:17px;font-weight:300;font-style:italic;line-height:1.82;color:var(--text-dim);white-space:pre-wrap;"></div>
+        </div>
+        <div style="display:flex;">
+          <button class="btn btn-sm" onclick="saveJournalEntry()" style="flex:1;border-radius:0;border:none;border-right:1px solid var(--border-subtle);">&#8853; Save Entry</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('journalResult').classList.add('hidden')" style="flex:1;border-radius:0;border:none;">&#10005;</button>
+        </div>
+      </div>
+      <div id="journalMsg" style="display:none;margin-top:8px;font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.25em;color:var(--sienna);text-align:center;"></div>
+    </div>
+    <div class="error-box mt8" id="journalError"></div>
+  </div>
 </div>
 
 <!-- ═══ LIBRARY ═══ -->
@@ -641,6 +659,37 @@ input[type="file"] { display: none; }
     <button class="btn btn-primary btn-sm" onclick="addCollection()">Add</button>
   </div>
   <div class="error-box mt8" id="collError"></div>
+
+  <div style="margin-top:32px;">
+    <div style="height:1px;background:var(--border-subtle);margin-bottom:24px;"></div>
+    <div class="eyebrow accent" style="margin-bottom:8px;">Collection Readiness</div>
+    <p style="font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Is a collection ready to print? Get an honest curatorial assessment.</p>
+    <div class="field-group">
+      <div class="eyebrow">Select a Collection</div>
+      <select id="readinessSelect" style="font-size:17px;"><option value="">Choose collection…</option></select>
+    </div>
+    <button class="btn btn-ghost btn-full" id="readinessBtn" onclick="checkCollectionReadiness()" style="border-color:rgba(181,98,42,0.3);margin-bottom:16px;">
+      <span style="font-size:15px;">&#9678;</span> Assess Readiness
+    </button>
+    <div id="readinessResult" class="hidden">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;">
+        <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:14px;" id="readinessTitle"></div>
+        <div id="readinessText" style="font-size:17px;font-weight:300;line-height:1.78;color:var(--text-dim);white-space:pre-wrap;"></div>
+      </div>
+    </div>
+    <div class="error-box mt8" id="readinessError"></div>
+  </div>
+
+  <div style="margin-top:32px;">
+    <div style="height:1px;background:var(--border-subtle);margin-bottom:24px;"></div>
+    <div class="eyebrow accent" style="margin-bottom:8px;">Session Journal</div>
+    <p style="font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">A record of your creative sessions with Signal9.</p>
+    <div id="journalList"></div>
+    <div id="journalEmpty" class="lib-empty hidden">
+      <div class="lib-empty-icon">&#10022;</div>
+      <p class="lib-empty-text">No journal entries yet.<br>Write your first after completing an analysis.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ DETAIL ═══ -->
@@ -826,7 +875,7 @@ function navTo(s) {
   try {
     if (s === 'library') renderLibrary();
     else if (s === 'themes') renderThemes();
-    else if (s === 'collections') renderCollections();
+    else if (s === 'collections') { renderCollections(); populateReadinessSelect(); renderJournal(); }
   } catch(err) {
     console.error('navTo render error:', err);
   }
@@ -1433,6 +1482,184 @@ Write in Signal9's voice: precise, honest, unsentimental. This is not encouragem
   }
 }
 
+// --- SESSION JOURNAL -------------------------------------------------
+function writeSessionJournal() {
+  var key = getKey();
+  if (!key) { showErr('journalError', 'No API key set.'); return; }
+  if (!S.currentAnalysis) { showErr('journalError', 'No analysis to journal.'); return; }
+  clearErr('journalError');
+  var btn = document.getElementById('journalBtn');
+  btn.disabled = true;
+  btn.innerHTML = '&#10022; Writing&hellip;';
+  document.getElementById('journalResult').classList.add('hidden');
+
+  var lib = getLib();
+  var today = new Date().toDateString();
+  var recentEntries = lib.slice(0, 8).filter(function(e) {
+    return new Date(e._ts || 0).toDateString() === today;
+  });
+  if (recentEntries.length === 0) recentEntries = lib.slice(0, 3);
+
+  var sessionSummary = recentEntries.map(function(e) {
+    var parts = [
+      'Title: ' + (e.title || 'Untitled'),
+      'Themes: ' + (e.themes && e.themes.items ? e.themes.items.join(', ') : 'none')
+    ];
+    return parts.join('. ');
+  }).join(' | ');
+
+  var currentTitle = S.currentAnalysis.title || 'Untitled';
+  var currentNarrative = (S.currentAnalysis.narrative || '').substring(0, 200);
+  var currentThemes = S.currentAnalysis.themes && S.currentAnalysis.themes.items ? S.currentAnalysis.themes.items.join(', ') : '';
+  var totalLib = lib.length;
+  var dateStr = new Date().toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  var msgParts = [
+    'Write a short creative journal entry for Signal9 Studio for today: ' + dateStr + '.',
+    'Signal9 is a Tasmanian fine art print studio — fracture, containment, grief, structural vulnerability.',
+    'Current analysis: Title: ' + currentTitle + '. Reading: ' + currentNarrative + '. Themes: ' + currentThemes + '.',
+    'Other recent work this session: ' + (sessionSummary || 'none') + '.',
+    'Library size: ' + totalLib + ' analyses.',
+    'Write 3-4 short paragraphs as the creative director reflecting on the session. What was revealed, what threads emerged, what feels unresolved.',
+    'Honest, precise, elegiac. First person. Start with the date, then the entry. No preamble.'
+  ];
+
+  callClaude(
+    key,
+    'You are the creative director of Signal9 Studio. You write precise, elegiac journal entries about your practice. Restrained and unsentimental.',
+    msgParts.join(' '),
+    500
+  ).then(function(res) {
+    var text = res.trim();
+    document.getElementById('journalText').textContent = text;
+    document.getElementById('journalDate').textContent = dateStr.toUpperCase();
+    document.getElementById('journalResult').classList.remove('hidden');
+    document.getElementById('journalResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+    window._journalText = text;
+    window._journalDate = dateStr;
+  }).catch(function(e) {
+    showErr('journalError', 'Journal failed: ' + e.message);
+  }).finally(function() {
+    btn.disabled = false;
+    btn.innerHTML = '&#10022; Write Session Journal Entry';
+  });
+}
+
+function saveJournalEntry() {
+  var text = window._journalText || document.getElementById('journalText').textContent;
+  var date = window._journalDate || new Date().toLocaleDateString('en-AU', {day:'numeric', month:'long', year:'numeric'});
+  if (!text) return;
+  var journal = [];
+  try { journal = JSON.parse(localStorage.getItem('s9_journal') || '[]'); } catch(e) {}
+  journal.unshift({date: date, text: text, ts: Date.now()});
+  localStorage.setItem('s9_journal', JSON.stringify(journal));
+  var msg = document.getElementById('journalMsg');
+  msg.textContent = 'Entry saved';
+  msg.style.display = 'block';
+  setTimeout(function() { msg.style.display = 'none'; }, 2000);
+}
+
+function renderJournal() {
+  var journal = [];
+  try { journal = JSON.parse(localStorage.getItem('s9_journal') || '[]'); } catch(e) {}
+  var list = document.getElementById('journalList');
+  var empty = document.getElementById('journalEmpty');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!journal.length) {
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  journal.forEach(function(entry) {
+    var el = document.createElement('div');
+    el.style.cssText = 'background:var(--card);border:1px solid var(--border-faint);border-radius:var(--r);padding:18px 20px;margin-bottom:12px;cursor:pointer;';
+    var dateEl = document.createElement('div');
+    dateEl.style.cssText = 'font-family:Cormorant SC,serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:10px;';
+    dateEl.textContent = (entry.date || '').toUpperCase();
+    var textEl = document.createElement('div');
+    textEl.style.cssText = 'font-size:16px;font-weight:300;font-style:italic;line-height:1.78;color:var(--text-dim);';
+    var preview = (entry.text || '').substring(0, 280);
+    if ((entry.text || '').length > 280) preview += '\u2026';
+    textEl.textContent = preview;
+    el.appendChild(dateEl);
+    el.appendChild(textEl);
+    list.appendChild(el);
+  });
+}
+
+// --- COLLECTION READINESS --------------------------------------------
+function populateReadinessSelect() {
+  var sel = document.getElementById('readinessSelect');
+  if (!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">Choose collection\u2026</option>';
+  var lib = getLib();
+  getColls().forEach(function(coll) {
+    var count = lib.filter(function(e) { return e.collections && e.collections.includes(coll); }).length;
+    var opt = document.createElement('option');
+    opt.value = coll;
+    opt.textContent = coll + ' (' + count + ' ' + (count === 1 ? 'piece' : 'pieces') + ')';
+    sel.appendChild(opt);
+  });
+  if (cur) sel.value = cur;
+}
+
+function checkCollectionReadiness() {
+  var key = getKey();
+  if (!key) { showErr('readinessError', 'No API key set.'); return; }
+  var collName = document.getElementById('readinessSelect').value;
+  if (!collName) { showErr('readinessError', 'Please select a collection.'); return; }
+  var lib = getLib();
+  var pieces = lib.filter(function(e) { return e.collections && e.collections.includes(collName); });
+  if (pieces.length < 2) { showErr('readinessError', 'Add at least 2 analyses to this collection first.'); return; }
+  clearErr('readinessError');
+  var btn = document.getElementById('readinessBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="font-size:15px;">\u25ce</span> Assessing\u2026';
+  document.getElementById('readinessResult').classList.add('hidden');
+
+  var summaries = pieces.map(function(e) {
+    return [
+      'Title: ' + (e.title || 'Untitled'),
+      'Narrative: ' + (e.narrative || '').substring(0, 160),
+      'Themes: ' + (e.themes && e.themes.items ? e.themes.items.join(', ') : 'none'),
+      'Seeds: ' + (e.seeds && e.seeds.items ? e.seeds.items.slice(0,2).join(', ') : 'none')
+    ].join('. ');
+  }).join(' || ');
+
+  var msgParts = [
+    'You are a curatorial director assessing the collection "' + collName + '" for Signal9 Studio.',
+    'Signal9 is a Tasmanian fine art print studio producing limited edition A2 archival giclee prints.',
+    'It works in themes of fracture, containment, grief, structural vulnerability, quiet devastation.',
+    'The collection has ' + pieces.length + ' pieces in development.',
+    'Piece summaries: ' + summaries + '.',
+    'Assess the collection across four areas:',
+    '1. COHERENCE: Do these pieces belong together? Is there a clear through-line?',
+    '2. COMPLETENESS: What is missing? What gaps exist in the emotional or thematic arc?',
+    '3. READINESS: Is this collection close to print-ready or does it need more development?',
+    '4. RECOMMENDATION: One specific action. What should happen next?',
+    'Be honest. This is a working assessment, not encouragement. The bar is high. Write in clear paragraphs, no bullet points.'
+  ];
+
+  callClaude(
+    key,
+    'You are a curatorial director for a premium fine art studio. Your assessments are honest, precise, and constructively challenging.',
+    msgParts.join(' '),
+    700
+  ).then(function(res) {
+    document.getElementById('readinessTitle').textContent = collName.toUpperCase() + ' \u2014 READINESS ASSESSMENT';
+    document.getElementById('readinessText').textContent = res.trim();
+    document.getElementById('readinessResult').classList.remove('hidden');
+    document.getElementById('readinessResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }).catch(function(e) {
+    showErr('readinessError', 'Assessment failed: ' + e.message);
+  }).finally(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:15px;">\u25ce</span> Assess Readiness';
+  });
+}
+
 // ─── CGDREAM PROMPT GENERATOR ─────────────────────
 const CGDREAM_SYSTEM = `You are an expert AI image prompt engineer specialising in CGDream. You write detailed, technical prompts that produce fine art digital images in the Signal9 Studio aesthetic.
 
@@ -1468,6 +1695,7 @@ async function generateCGDreamPrompt() {
     document.getElementById('cgdreamResult').classList.remove('hidden');
     document.getElementById('cgdreamResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     window._cgdreamText = text;
+    saveCGDreamPrompt();
   } catch(e) {
     showErr('cgdreamError', 'Generation failed: ' + e.message);
   } finally {
