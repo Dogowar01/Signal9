@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="S9 Inspire">
 <title>Signal9 — Inspire</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --sienna: #b5622a;
@@ -366,14 +366,73 @@ input[type="file"] { display: none; }
 
 <!-- ═══ SETUP ═══ -->
 <div class="screen active" id="screenSetup">
-  <div class="app-header">
-    <div class="logo">
-      <span class="logo-studio">Signal</span>
-      <span class="logo-mark">9</span>
-      <span class="logo-sub">Inspire</span>
-    </div>
+  <!-- BRANDED SETUP LOGO -->
+  <div style="display:flex;flex-direction:column;align-items:center;padding-top:calc(var(--safe-top) + 40px);padding-bottom:10px;flex-shrink:0;">
+    <svg width="280" height="160" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Watercolour splotch filter -->
+        <filter id="splotch1" x="-40%" y="-40%" width="180%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.025 0.03" numOctaves="5" seed="8" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+          <feGaussianBlur in="displaced" stdDeviation="6" result="blurred"/>
+          <feComposite in="blurred" in2="SourceGraphic" operator="in"/>
+        </filter>
+        <filter id="splotch2" x="-40%" y="-40%" width="180%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.03 0.025" numOctaves="4" seed="14" result="noise2"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise2" scale="18" xChannelSelector="G" yChannelSelector="R" result="displaced2"/>
+          <feGaussianBlur in="displaced2" stdDeviation="8" result="blurred2"/>
+          <feComposite in="blurred2" in2="SourceGraphic" operator="in"/>
+        </filter>
+        <filter id="splotch3" x="-50%" y="-50%" width="200%" height="200%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="6" seed="3" result="noise3"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise3" scale="20" xChannelSelector="R" yChannelSelector="B" result="displaced3"/>
+          <feGaussianBlur in="displaced3" stdDeviation="10"/>
+        </filter>
+      </defs>
+
+      <!-- Watercolour splotches behind the 9 -->
+      <!-- Sienna splotch — primary, behind the 9 -->
+      <ellipse cx="196" cy="72" rx="54" ry="50" fill="rgba(181,98,42,0.55)" filter="url(#splotch1)"/>
+      <ellipse cx="200" cy="68" rx="40" ry="36" fill="rgba(181,98,42,0.35)" filter="url(#splotch2)"/>
+      <!-- Sage splotch — offset, bleeds left -->
+      <ellipse cx="172" cy="84" rx="38" ry="32" fill="rgba(122,140,110,0.32)" filter="url(#splotch3)"/>
+      <!-- Small sienna bleed -->
+      <ellipse cx="218" cy="58" rx="26" ry="22" fill="rgba(181,98,42,0.22)" filter="url(#splotch2)"/>
+
+      <!-- SIGNAL wordmark -->
+      <text
+        x="22" y="94"
+        font-family="Barlow, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="72"
+        letter-spacing="-1"
+        fill="rgba(237,229,216,0.95)"
+      >SIGNAL</text>
+
+      <!-- 9 in sienna — sits on top of splotch -->
+      <text
+        x="193" y="94"
+        font-family="Barlow, 'Arial Black', sans-serif"
+        font-weight="800"
+        font-size="72"
+        fill="#b5622a"
+      >9</text>
+
+      <!-- Sub-brand -->
+      <text
+        x="22" y="122"
+        font-family="'Cormorant SC', Georgia, serif"
+        font-weight="400"
+        font-size="13"
+        letter-spacing="8"
+        fill="rgba(237,229,216,0.35)"
+      >STUDIO · INSPIRE</text>
+
+      <!-- Thin rule -->
+      <line x1="22" y1="130" x2="258" y2="130" stroke="rgba(181,98,42,0.25)" stroke-width="0.75"/>
+    </svg>
   </div>
-  <div class="setup-wrap">
+  <div class="setup-wrap" style="padding-top:8px;">
     <div class="setup-eyebrow">First-time setup</div>
     <h1 class="setup-heading">Your studio's creative eye.</h1>
     <p class="setup-body">Enter your Anthropic API key to activate analysis. Stored only on this device, sent only to Anthropic.<br><br>Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Each analysis costs roughly 1–3 cents.</p>
@@ -439,6 +498,30 @@ input[type="file"] { display: none; }
   </div>
   <div class="error-box" id="newError"></div>
   <button class="btn btn-primary btn-full" onclick="startAnalysis()">Analyse</button>
+
+  <!-- THE ORACLE -->
+  <div style="margin-top:22px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="flex:1;height:1px;background:var(--border-subtle);"></div>
+      <span style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.35em;color:var(--text-muted);">or</span>
+      <div style="flex:1;height:1px;background:var(--border-subtle);"></div>
+    </div>
+    <button class="btn btn-ghost btn-full" id="oracleBtn" onclick="consultOracle()" style="border-color:rgba(181,98,42,0.3);">
+      <span style="font-size:16px;">✦</span> Consult the Oracle
+    </button>
+    <div id="oracleResult" class="hidden" style="margin-top:16px;">
+      <div style="background:var(--sienna-glow);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;position:relative;">
+        <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:12px;">The Oracle speaks</div>
+        <div id="oracleText" style="font-size:21px;font-weight:300;font-style:italic;line-height:1.72;color:var(--text);"></div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button class="btn btn-sm" onclick="useOracleAsPrompt()" style="flex:1;">Use this</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('oracleResult').classList.add('hidden')">Dismiss</button>
+        </div>
+      </div>
+    </div>
+    <div class="error-box mt8" id="oracleError"></div>
+  </div>
+
   <div style="text-align:center;margin-top:16px;">
     <button class="btn btn-ghost btn-sm" onclick="showKeyModal()">change api key</button>
   </div>
@@ -553,6 +636,23 @@ input[type="file"] { display: none; }
   </div>
   <div class="themes-section">
     <div class="theme-bar-wrap" id="themeBarWrap"></div>
+  </div>
+
+  <!-- WHAT'S MISSING -->
+  <div id="missingSection" style="margin-top:32px;">
+    <div style="height:1px;background:var(--border-subtle);margin-bottom:24px;"></div>
+    <div class="eyebrow accent" style="margin-bottom:8px;">What's Missing</div>
+    <p style="font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Blind spots and unexplored territory in your practice.</p>
+    <button class="btn btn-ghost btn-full" id="missingBtn" onclick="findMissing()" style="border-color:rgba(181,98,42,0.3);margin-bottom:16px;">
+      <span style="font-size:15px;">◎</span> Find What's Missing
+    </button>
+    <div id="missingResult" class="hidden">
+      <div style="background:var(--sienna-glow);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;">
+        <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:14px;">Unexplored territory</div>
+        <div id="missingText" style="font-size:17px;font-weight:300;line-height:1.78;color:var(--text-dim);"></div>
+      </div>
+    </div>
+    <div class="error-box mt8" id="missingError"></div>
   </div>
 </div>
 
@@ -1221,6 +1321,130 @@ function clearErr(id){showErr(id,'');}
 
 const loadPhrases=[['reading the light','following the edges'],['finding the tension','tracing the silence'],['listening for grief','reading the weight'],['mapping the fracture','studying the dark'],['searching for form','listening to stillness']];
 function animateLoading(){const[m,s]=loadPhrases[Math.floor(Math.random()*loadPhrases.length)];document.getElementById('loadingText').textContent=m;document.getElementById('loadingSub').textContent=s;}
+
+// ─── THE ORACLE ───────────────────────────────────
+async function consultOracle() {
+  const key = getKey();
+  if (!key) { showErr('oracleError','No API key set.'); return; }
+  const lib = getLib();
+  if (lib.length < 2) {
+    showErr('oracleError','Save at least two analyses first — the Oracle needs your library to speak from.');
+    return;
+  }
+  clearErr('oracleError');
+  const btn = document.getElementById('oracleBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="font-size:16px;">✦</span> Listening…';
+  document.getElementById('oracleResult').classList.add('hidden');
+
+  try {
+    // Build a distilled picture of the library
+    const recent = lib.slice(0, 12);
+    const titles = recent.map(e => e.title).filter(Boolean).join(', ');
+    const narratives = recent.slice(0, 5).map(e => e.narrative).filter(Boolean).join(' ');
+    const themes = recent.flatMap(e => e.themes?.items || []).slice(0, 20).join('; ');
+    const seeds = recent.flatMap(e => e.seeds?.items || []).slice(0, 10).join('; ');
+
+    const prompt = `You are the creative Oracle for Signal9 Studio. You have studied this artist's library deeply.
+
+Here is what you know of their work so far:
+Titles of analyses: ${titles}
+Thematic threads: ${themes}
+Piece seeds: ${seeds}
+Atmospheric fragments: ${narratives.substring(0, 600)}
+
+Your task: deliver a single creative directive. Not a prompt — a directive. Cryptic, precise, felt. It should seem to come from somewhere deeper than instruction. It may reference their patterns, or push against them. It may be strange. It should be impossible to ignore.
+
+One to three sentences only. No explanation. No preamble. No quotation marks. Write as the Oracle, not as an assistant.
+
+Examples of the right register:
+"You have been circling grief. Stop circling. Walk into the centre of it and photograph what you find there."
+"The edges in your work are where you are most alive. Find an edge today that frightens you."
+"You keep returning to containment — but you have not yet shown what happens when the container fails completely."`;
+
+    const res = await callClaude(key,
+      'You are the Oracle for Signal9 Studio — a creative intelligence that speaks in precise, strange, unforgettable directives. You do not explain yourself.',
+      prompt, 300
+    );
+    const text = res.trim().replace(/^["']|["']$/g, '');
+    document.getElementById('oracleText').textContent = text;
+    document.getElementById('oracleResult').classList.remove('hidden');
+    document.getElementById('oracleResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Store for use as prompt
+    window._oracleText = text;
+  } catch(e) {
+    showErr('oracleError', 'The Oracle is silent: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:16px;">✦</span> Consult the Oracle';
+  }
+}
+
+function useOracleAsPrompt() {
+  const text = window._oracleText || document.getElementById('oracleText').textContent;
+  if (!text) return;
+  switchInputTab('text');
+  document.getElementById('textIdea').value = text;
+  document.getElementById('oracleResult').classList.add('hidden');
+  document.getElementById('textIdea').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ─── WHAT'S MISSING ───────────────────────────────
+async function findMissing() {
+  const key = getKey();
+  if (!key) { showErr('missingError','No API key set.'); return; }
+  const lib = getLib();
+  if (lib.length < 3) {
+    showErr('missingError','Save at least three analyses first to find meaningful gaps.');
+    return;
+  }
+  clearErr('missingError');
+  const btn = document.getElementById('missingBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="font-size:15px;">◎</span> Reading your library…';
+  document.getElementById('missingResult').classList.add('hidden');
+
+  try {
+    const titles = lib.map(e => e.title).filter(Boolean).join(', ');
+    const themes = lib.flatMap(e => e.themes?.items || []).join('; ');
+    const moods = lib.flatMap(e => e.mood?.items || []).join('; ');
+    const palettes = lib.flatMap(e => e.palette?.swatches || []).map(s => s.name).join(', ');
+    const seeds = lib.flatMap(e => e.seeds?.items || []).join('; ');
+    const narratives = lib.slice(0, 6).map(e => e.narrative).filter(Boolean).join(' ');
+
+    const prompt = `You are a creative director analysing the complete library of Signal9 Studio — a Tasmanian fine art print studio working in themes of fracture, containment, grief, and structural vulnerability.
+
+Here is what the library currently contains:
+Analysis titles: ${titles}
+Recurring themes and threads: ${themes}
+Mood and atmosphere: ${moods}
+Colour territory explored: ${palettes}
+Piece and collection seeds: ${seeds}
+Atmospheric writing samples: ${narratives.substring(0, 800)}
+
+Your task: identify what is MISSING from this body of work. What adjacent territories has this artist not explored? What emotional registers are absent? What visual or conceptual blind spots exist? What would push this practice into genuinely new ground?
+
+Structure your response as follows — no preamble, go straight in:
+1. Three specific unexplored territories (2-3 sentences each, precise and evocative)
+2. One emotional register that is notably absent from the work
+3. One concrete challenge: a specific direction this artist should explore next
+
+Write in Signal9's voice: precise, honest, unsentimental. This is not encouragement — it is a clear-eyed reading of what is not yet there.`;
+
+    const res = await callClaude(key,
+      'You are a creative director for Signal9 Studio. Your voice is precise, honest, and constructively challenging. You identify gaps without softening them.',
+      prompt, 900
+    );
+    document.getElementById('missingText').textContent = res.trim();
+    document.getElementById('missingResult').classList.remove('hidden');
+    document.getElementById('missingResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch(e) {
+    showErr('missingError', 'Analysis failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:15px;">◎</span> Find What's Missing';
+  }
+}
 
 // ─── DAILY PROMPT ─────────────────────────────────
 const PROMPT_SUBJECTS = [
