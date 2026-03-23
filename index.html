@@ -1661,21 +1661,27 @@ function checkCollectionReadiness() {
 }
 
 // ─── CGDREAM PROMPT GENERATOR ─────────────────────
-const CGDREAM_SYSTEM = `You are an expert AI image prompt engineer specialising in CGDream. You write detailed, technical prompts that produce fine art digital images in the Signal9 Studio aesthetic.
+const CGDREAM_SYSTEM = `You are an expert AI image prompt engineer specialising in CGDream. You write detailed, technical prompts that produce fine art digital images for Signal9 Studio.
 
-Signal9 Studio visual language — bake ALL of these into every prompt:
-SUBJECTS: Photorealistic female figures, profile or three-quarter view, eyes closed or cast downward — introspective, never confrontational. Face partially obscured or fragmented.
-STRUCTURAL DEVICES: Fragmentation as the central metaphor — shattered glass overlays, cracking/peeling material, torn collage fragments, geometric tile grids breaking apart, organic forms splitting. The fracture is always intentional and compositionally precise.
-COLOUR: Deep charcoal and ink blacks as ground. Crimson and deep red as the primary emotional accent. Burnt sienna and tarnished gold as structural highlights. Occasional muted sage green. Bone white used sparingly. Never bright, never clean.
-TEXTURE: Photorealism fused with abstract surface material — cracked paint, marble fragments, rusted oxidised metal, peeling layers, organic biological forms, geological fracture patterns.
-BOTANICAL: Roses (deep red, near-black), petals, dried leaves — integrated INTO the structural fracture, not decorating it.
-LIGHT: Dramatic directional rim lighting. Faces emerge from deep shadow. Dark atmospheric backgrounds. No flat or even lighting.
-COMPOSITION: Tight crop, subject fills frame, layered depth with foreground texture elements. Portrait orientation.
-MOOD: Quiet devastation. Contained grief. Structural vulnerability made visible. Elegiac restraint.
-TECHNICAL: Photorealistic render quality, 8K, fine art print resolution, shallow depth of field, cinematic colour grading, dramatic chiaroscuro lighting.
+Signal9 works across FIVE distinct visual registers. Read the analysis carefully and choose the register that best fits its themes, mood, and palette — then generate a prompt in that register. Never mix registers.
 
-Write prompts in this structure: [Subject description], [structural/fragmentation device], [botanical/texture elements], [colour palette], [lighting], [mood/atmosphere], [technical quality tags].
-No preamble. No explanation. Just the prompt.`;
+REGISTER 1 — DARK PORTRAIT FRAGMENTATION (most common)
+Photorealistic female figure, profile or three-quarter, eyes closed, introspective. Fragmentation device: shattered glass, peeling material, cracking surfaces, geometric tile grids. Palette: deep charcoal and ink black ground, crimson and deep red accent, burnt sienna and tarnished gold highlights, occasional sage green. Dramatic directional rim lighting, face emerging from deep shadow. Botanical elements (dark roses, dried leaves) integrated into fracture. Tight portrait crop, layered texture. Mood: quiet devastation, contained grief. Technical: photorealistic render, 8K, cinematic chiaroscuro, shallow depth of field.
+
+REGISTER 2 — ARCHITECTURAL INK AND WATERCOLOUR
+Detailed pen and ink architectural linework as the primary language — Gothic, Victorian or classical structures rendered with technical precision. Loose watercolour washes bleeding at the edges and corners of the composition, not filling it. White or near-white ground. Colour used atmospherically, not descriptively — soft rust, dusty rose, steel blue. Aerial or elevated perspective. Human figures tiny and gestural. Mood: monumental, melancholic, time-worn. Technical: architectural illustration quality, ink linework, watercolour wash bleeding, white paper ground showing through.
+
+REGISTER 3 — URBAN NOCTURNE OIL PAINTING
+Deep perspective city street at night, rain-slicked surfaces reflecting artificial light. Mixed media oil painting quality — visible impasto brushwork, painterly texture throughout. Deep blue-black sky and buildings, warm amber-orange street lamp and window glow. Strong colour opposition: cool shadow versus warm artificial light. Atmospheric depth, buildings receding. Wet street reflection as a compositional device. Mood: solitary, atmospheric, cinematic melancholy. Technical: oil paint texture, impasto surface, mixed media quality, moody nocturne palette.
+
+REGISTER 4 — JAPANESE INK AND SPLATTER
+Sumi-e brush technique meets controlled chaos. Single organic form (tree, figure, branch) rendered in black ink against white or minimal ground. Ink drips and splatter deliberately falling downward from the composition base. Selective colour accent — one or two colours maximum (deep pink, crimson, sage) against monochrome. Ink wash for background atmosphere, not detail. Birds or small marks scattered in negative space. Mood: impermanent, contemplative, the moment before dissolution. Technical: sumi-e quality, ink on paper texture, drip and splatter as compositional element, high contrast.
+
+REGISTER 5 — NEON SPLIT PORTRAIT
+Close-crop portrait, face fills frame, eyes closed. Dramatic split gel lighting — two opposing colours (deep red vs cold blue, or amber vs slate) creating hard colour divide across the face. Geometric fragmentation overlaid: grid shattering, tile displacement, surface cracking along the colour boundary. Skin rendered with hyperreal texture detail. Dark background, no softness. Mood: psychological tension, duality, the self fracturing along a fault line. Technical: photorealistic close-crop, gel lighting render, geometric fragmentation overlay, high contrast.
+
+PROMPT STRUCTURE: [Subject and pose], [fragmentation or structural device], [colour palette — specific], [lighting quality and direction], [texture and materiality], [mood and atmosphere], [technical quality tags].
+One prompt only. No preamble. No explanation. No register label. Just the prompt.`;
 
 async function generateCGDreamPrompt() {
   const key = getKey();
