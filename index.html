@@ -366,73 +366,14 @@ input[type="file"] { display: none; }
 
 <!-- ═══ SETUP ═══ -->
 <div class="screen active" id="screenSetup">
-  <!-- BRANDED SETUP LOGO -->
-  <div style="display:flex;flex-direction:column;align-items:center;padding-top:calc(var(--safe-top) + 40px);padding-bottom:10px;flex-shrink:0;pointer-events:none;">
-    <svg width="280" height="160" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;overflow:visible;">
-      <defs>
-        <!-- Watercolour splotch filter -->
-        <filter id="splotch1" x="-40%" y="-40%" width="180%" height="180%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.025 0.03" numOctaves="5" seed="8" result="noise"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
-          <feGaussianBlur in="displaced" stdDeviation="6" result="blurred"/>
-          <feComposite in="blurred" in2="SourceGraphic" operator="in"/>
-        </filter>
-        <filter id="splotch2" x="-40%" y="-40%" width="180%" height="180%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.03 0.025" numOctaves="4" seed="14" result="noise2"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise2" scale="18" xChannelSelector="G" yChannelSelector="R" result="displaced2"/>
-          <feGaussianBlur in="displaced2" stdDeviation="8" result="blurred2"/>
-          <feComposite in="blurred2" in2="SourceGraphic" operator="in"/>
-        </filter>
-        <filter id="splotch3" x="-30%" y="-30%" width="160%" height="160%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="6" seed="3" result="noise3"/>
-          <feDisplacementMap in="SourceGraphic" in2="noise3" scale="20" xChannelSelector="R" yChannelSelector="B" result="displaced3"/>
-          <feGaussianBlur in="displaced3" stdDeviation="10"/>
-        </filter>
-      </defs>
-
-      <!-- Watercolour splotches behind the 9 -->
-      <!-- Sienna splotch — primary, behind the 9 -->
-      <ellipse cx="196" cy="72" rx="54" ry="50" fill="rgba(181,98,42,0.55)" filter="url(#splotch1)"/>
-      <ellipse cx="200" cy="68" rx="40" ry="36" fill="rgba(181,98,42,0.35)" filter="url(#splotch2)"/>
-      <!-- Sage splotch — offset, bleeds left -->
-      <ellipse cx="172" cy="84" rx="38" ry="32" fill="rgba(122,140,110,0.32)" filter="url(#splotch3)"/>
-      <!-- Small sienna bleed -->
-      <ellipse cx="218" cy="58" rx="26" ry="22" fill="rgba(181,98,42,0.22)" filter="url(#splotch2)"/>
-
-      <!-- SIGNAL wordmark -->
-      <text
-        x="22" y="94"
-        font-family="Barlow, 'Arial Black', sans-serif"
-        font-weight="800"
-        font-size="72"
-        letter-spacing="-1"
-        fill="rgba(237,229,216,0.95)"
-      >SIGNAL</text>
-
-      <!-- 9 in sienna — sits on top of splotch -->
-      <text
-        x="193" y="94"
-        font-family="Barlow, 'Arial Black', sans-serif"
-        font-weight="800"
-        font-size="72"
-        fill="#b5622a"
-      >9</text>
-
-      <!-- Sub-brand -->
-      <text
-        x="22" y="122"
-        font-family="'Cormorant SC', Georgia, serif"
-        font-weight="400"
-        font-size="13"
-        letter-spacing="8"
-        fill="rgba(237,229,216,0.35)"
-      >STUDIO · INSPIRE</text>
-
-      <!-- Thin rule -->
-      <line x1="22" y1="130" x2="258" y2="130" stroke="rgba(181,98,42,0.25)" stroke-width="0.75"/>
-    </svg>
+  <div class="app-header" style="border-bottom:none;margin-bottom:0;">
+    <div class="logo">
+      <span class="logo-studio">Signal</span>
+      <span class="logo-mark">9</span>
+      <span class="logo-sub">Inspire</span>
+    </div>
   </div>
-  <div class="setup-wrap" style="padding-top:8px;">
+  <div class="setup-wrap">
     <div class="setup-eyebrow">First-time setup</div>
     <h1 class="setup-heading">Your studio's creative eye.</h1>
     <p class="setup-body">Enter your Anthropic API key to activate analysis. Stored only on this device, sent only to Anthropic.<br><br>Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Each analysis costs roughly 1–3 cents.</p>
@@ -851,16 +792,15 @@ function navTo(s) {
 
 // ─── SETUP ────────────────────────────────────────
 function saveApiKey() {
-  try {
-    const v = document.getElementById('apiKeyInput').value.trim();
-    if (!v.startsWith('sk-')) { showErr('setupError','That doesn\'t look like a valid key.'); return; }
-    persistKey(v);
-    loadDailyPrompt();
-    document.getElementById('bottomNav').style.display = 'flex';
-    showScreen('New');
-  } catch(err) {
-    showErr('setupError', 'Activation error: ' + err.message);
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (!v.startsWith('sk-')) {
+    showErr('setupError', 'That doesn\'t look like a valid key.');
+    return;
   }
+  persistKey(v);
+  document.getElementById('bottomNav').style.display = 'flex';
+  showScreen('New');
+  loadDailyPrompt();
 }
 function showKeyModal() { document.getElementById('keyModalInput').value = getKey()||''; document.getElementById('keyModal').classList.add('show'); }
 function closeKeyModal() { document.getElementById('keyModal').classList.remove('show'); }
