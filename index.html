@@ -359,9 +359,6 @@ input[type="file"] { display: none; }
   <button class="nav-item" id="nav-themes" onclick="navTo('themes')">
     <span class="nav-icon">◈</span><span class="nav-label">Themes</span>
   </button>
-  <button class="nav-item" id="nav-compare" onclick="openCompare()">
-    <span class="nav-icon">⇌</span><span class="nav-label">Compare</span>
-  </button>
   <button class="nav-item" id="nav-collections" onclick="navTo('collections')">
     <span class="nav-icon">⊟</span><span class="nav-label">Collections</span>
   </button>
@@ -402,6 +399,15 @@ input[type="file"] { display: none; }
       <button class="header-btn" onclick="showKeyModal()">⚙</button>
     </div>
   </div>
+  <!-- DAILY PROMPT -->
+  <div id="dailyPromptWrap" style="margin-bottom:26px;cursor:pointer;" onclick="useDailyPrompt()">
+    <div class="eyebrow accent" style="margin-bottom:10px;">Today's prompt</div>
+    <div style="background:var(--sienna-glow);border-left:2px solid var(--sienna);padding:16px 20px;border-radius:0 var(--r) var(--r) 0;">
+      <div id="dailyPromptText" style="font-size:19px;font-weight:300;font-style:italic;line-height:1.72;color:var(--text);">Loading…</div>
+      <div style="margin-top:10px;font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.3em;color:var(--text-muted);">Tap to use as your idea</div>
+    </div>
+  </div>
+
   <div class="tab-row">
     <button class="tab active" id="tabPhoto" onclick="switchInputTab('photo')">▲ Photo</button>
     <button class="tab" id="tabText" onclick="switchInputTab('text')">✦ Written Idea</button>
@@ -600,43 +606,6 @@ input[type="file"] { display: none; }
   </div>
 </div>
 
-<!-- ═══ COMPARE ═══ -->
-<div class="screen scroll-y" id="screenCompare">
-  <div class="app-header">
-    <div class="logo">
-      <span class="logo-studio">Signal</span><span class="logo-mark">9</span><span class="logo-sub">Compare</span>
-    </div>
-    <div class="header-right"><div class="pulse-dot" id="pulseDot3"></div></div>
-  </div>
-  <p style="font-size:17px;font-style:italic;color:var(--text-muted);margin-bottom:24px;line-height:1.65;">Select two saved analyses to find what connects them — shared threads, collection potential, tensions between them.</p>
-  <div class="field-group">
-    <div class="eyebrow">First Analysis</div>
-    <select id="compareA" style="font-size:17px;"><option value="">Choose…</option></select>
-  </div>
-  <div class="field-group">
-    <div class="eyebrow">Second Analysis</div>
-    <select id="compareB" style="font-size:17px;"><option value="">Choose…</option></select>
-  </div>
-  <div class="error-box" id="compareError"></div>
-  <button class="btn btn-primary btn-full" onclick="runCompare()">Compare</button>
-  <div id="compareResult" class="hidden" style="margin-top:28px;">
-    <div class="narrative-block">
-      <div class="narrative-eyebrow">Connection Reading</div>
-      <div class="narrative-text" id="compareText" style="font-style:normal;font-size:18px;line-height:1.78;"></div>
-    </div>
-    <div style="margin-top:16px;display:flex;gap:10px;">
-      <button class="btn btn-primary btn-sm" onclick="saveComparison()" style="flex:1;">⊕ Save to Both Analyses</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('compareResult').classList.add('hidden')">✕ Clear</button>
-    </div>
-    <div id="compareSaveMsg" style="display:none;margin-top:10px;padding:12px 16px;background:rgba(181,98,42,0.1);border:1px solid rgba(181,98,42,0.3);border-radius:3px;font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.25em;color:var(--sienna);"></div>
-  </div>
-</div>id="compareResult" class="hidden" style="margin-top:28px;">
-    <div class="narrative-block">
-      <div class="narrative-eyebrow">Connection Reading</div>
-      <div class="narrative-text" id="compareText" style="font-style:normal;font-size:18px;line-height:1.78;"></div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ MODAL: EXPORT ═══ -->
 <div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
@@ -766,7 +735,7 @@ function showScreen(id) {
 }
 
 function navTo(s) {
-  const map = { new:'New', library:'Library', themes:'Themes', compare:'Compare', collections:'Collections' };
+  const map = { new:'New', library:'Library', themes:'Themes', collections:'Collections' };
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const navEl = document.getElementById('nav-' + s); if(navEl) navEl.classList.add('active');
   showScreen(map[s]);
@@ -775,7 +744,6 @@ function navTo(s) {
     if (s === 'library') renderLibrary();
     else if (s === 'themes') renderThemes();
     else if (s === 'collections') renderCollections();
-    else if (s === 'compare') renderCompare();
   } catch(err) {
     console.error('navTo render error:', err);
   }
@@ -1181,111 +1149,7 @@ function doPrint() {
 // ─── COMPARE ───────────────────────────────────────────────
 
 
-// ─── SAVE COMPARISON ──────────────────────────────
-function saveComparison() {
-  const aId = document.getElementById('compareA').value;
-  const bId = document.getElementById('compareB').value;
-  const text = document.getElementById('compareText').textContent;
-  if (!aId || !bId || !text) return;
-  const lib = getLib();
-  const aIdx = lib.findIndex(e => e.id === aId);
-  const bIdx = lib.findIndex(e => e.id === bId);
-  if (aIdx < 0 || bIdx < 0) return;
-  const ts = new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-  const noteA = `[Comparison with "${lib[bIdx].title}" — ${ts}]\n${text}`;
-  const noteB = `[Comparison with "${lib[aIdx].title}" — ${ts}]\n${text}`;
-  // Append to existing notes rather than overwrite
-  lib[aIdx]._notes = lib[aIdx]._notes ? lib[aIdx]._notes + '\n\n' + noteA : noteA;
-  lib[bIdx]._notes = lib[bIdx]._notes ? lib[bIdx]._notes + '\n\n' + noteB : noteB;
-  saveLib(lib);
-  const msg = document.getElementById('compareSaveMsg');
-  msg.textContent = 'Saved to notes on both analyses';
-  msg.style.display = 'block';
-  setTimeout(() => { msg.style.display = 'none'; }, 2500);
-}
-
-// ─── OPEN COMPARE (standalone, bypasses navTo map) ────────────────────────
-function openCompare() {
-  // Deactivate all screens and nav items manually
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  // Show compare screen directly
-  const screen = document.getElementById('screenCompare');
-  if (screen) {
-    screen.classList.add('active');
-    screen.scrollTop = 0;
-  }
-  // Activate nav button
-  const navBtn = document.getElementById('nav-compare');
-  if (navBtn) navBtn.classList.add('active');
-  // Show bottom nav
-  document.getElementById('bottomNav').style.display = 'flex';
-  // Populate dropdowns
-  renderCompare();
-}
-
-function renderCompare() {
-  try {
-    const lib = getLib();
-    ['compareA','compareB'].forEach(id => {
-      const sel = document.getElementById(id);
-      if (!sel) { console.warn('Compare select not found:', id); return; }
-      // Keep current selection if possible
-      const prev = sel.value;
-      sel.innerHTML = '';
-      const blank = document.createElement('option');
-      blank.value = ''; blank.textContent = 'Choose…';
-      sel.appendChild(blank);
-      lib.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e.id;
-        opt.textContent = e.title || 'Untitled';
-        sel.appendChild(opt);
-      });
-      if (prev) sel.value = prev;
-    });
-    const res = document.getElementById('compareResult');
-    if (res) res.classList.add('hidden');
-    const errEl = document.getElementById('compareError');
-    if (errEl) { errEl.textContent = ''; errEl.classList.remove('show'); }
-  } catch(err) {
-    console.error('renderCompare error:', err);
-    const errEl = document.getElementById('compareError');
-    if (errEl) { errEl.textContent = 'Error loading analyses: ' + err.message; errEl.classList.add('show'); }
-  }
-}
-
-async function runCompare() {
-  const key = getKey();
-  if (!key) { showErr('compareError','No API key set.'); return; }
-  const aId = document.getElementById('compareA').value;
-  const bId = document.getElementById('compareB').value;
-  if (!aId || !bId) { showErr('compareError','Please select two analyses.'); return; }
-  if (aId === bId) { showErr('compareError','Please select two different analyses.'); return; }
-  const lib = getLib();
-  const a = lib.find(e => e.id === aId);
-  const b = lib.find(e => e.id === bId);
-  if (!a || !b) return;
-  clearErr('compareError');
-  const btn = document.querySelector('[onclick="runCompare()"]');
-  btn.disabled = true; btn.textContent = 'Comparing…';
-  const dot = document.getElementById('pulseDot3');
-  if (dot) dot.classList.add('on');
-  try {
-    const prompt = 'Compare these two Signal9 Studio analyses and tell me: 1. What threads, themes, or visual qualities they share. 2. Whether they belong in the same collection and why. 3. What tensions or productive contrasts exist between them. 4. Specific directions or piece ideas that emerge from reading them together.\n\nAnalysis A - "' + a.title + '":\nNarrative: ' + a.narrative + '\nThemes: ' + (a.themes?.items||[]).join('; ') + '\nSeeds: ' + (a.seeds?.items||[]).join('; ') + '\n\nAnalysis B - "' + b.title + '":\nNarrative: ' + b.narrative + '\nThemes: ' + (b.themes?.items||[]).join('; ') + '\nSeeds: ' + (b.seeds?.items||[]).join('; ') + '\n\nWrite in Signal9 voice: precise, considered, unsentimental. 4-6 paragraphs.';
-    const res = await callClaude(key, "You are a creative director for Signal9 Studio. Voice: precise, restrained, elegiac.", prompt, 1000);
-    document.getElementById('compareText').textContent = res;
-    document.getElementById('compareResult').classList.remove('hidden');
-    document.getElementById('compareResult').scrollIntoView({ behavior:'smooth' });
-  } catch(e) {
-    showErr('compareError', 'Compare failed: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Compare';
-    if (dot) dot.classList.remove('on');
-  }
-}
-
-// ─── RENAME ───────────────────────────────────────────────
+// ─── RENAME ───────────────────────────────────────
 function startRenameDetail() {
   const titleEl = document.getElementById('detailTitle');
   const wrapEl = document.getElementById('detailRenameWrap');
@@ -1358,10 +1222,79 @@ function clearErr(id){showErr(id,'');}
 const loadPhrases=[['reading the light','following the edges'],['finding the tension','tracing the silence'],['listening for grief','reading the weight'],['mapping the fracture','studying the dark'],['searching for form','listening to stillness']];
 function animateLoading(){const[m,s]=loadPhrases[Math.floor(Math.random()*loadPhrases.length)];document.getElementById('loadingText').textContent=m;document.getElementById('loadingSub').textContent=s;}
 
+// ─── DAILY PROMPT ─────────────────────────────────
+const PROMPT_SUBJECTS = [
+  'something that has been repaired','an edge between two surfaces',
+  'light that arrives at an angle','an object that has been waiting',
+  'something almost empty','a texture that resists touch',
+  'something that contains without holding','a shadow with a hard edge',
+  'something discarded but not gone','a place where two materials meet',
+  'something folded','an opening that has been closed',
+  'something worn by repetition','a surface marked by time',
+  'something that leans','an interior visible from outside',
+  'a form that suggests weight','something that has lost its purpose',
+  'a threshold','something that has been left behind',
+];
+
+async function loadDailyPrompt() {
+  const today = new Date().toDateString();
+  const stored = localStorage.getItem('s9_daily');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed.date === today && parsed.text) {
+        document.getElementById('dailyPromptText').textContent = parsed.text;
+        return;
+      }
+    } catch(e) {}
+  }
+  // Pick a subject seeded by day-of-year so it's consistent per day
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const subject = PROMPT_SUBJECTS[dayOfYear % PROMPT_SUBJECTS.length];
+  const key = getKey();
+  if (!key) {
+    document.getElementById('dailyPromptText').textContent = 'Find ' + subject + '.';
+    return;
+  }
+  try {
+    const res = await callClaude(
+      key,
+      'You are a creative director for Signal9 Studio, a Tasmanian fine art print studio. Voice: precise, restrained, elegiac.',
+      `Write a single short creative prompt for a fine art photographer working in Signal9 Studio's aesthetic — quiet devastation, structural vulnerability, fracture, containment. The prompt should be based loosely on this subject: "${subject}". One sentence only. No quotation marks. No explanation. Make it evocative and specific, not generic. Examples of the right tone: "Find something that has been mended and photograph only the scar." "Look for the place where a surface remembers pressure." "Find light that arrives too late."`,
+      120
+    );
+    const text = res.trim().replace(/^["']|["']$/g, '');
+    document.getElementById('dailyPromptText').textContent = text;
+    localStorage.setItem('s9_daily', JSON.stringify({ date: today, text }));
+  } catch(e) {
+    // Fallback: use subject directly
+    const fallbacks = [
+      'Find ' + subject + ' and photograph what it holds.',
+      'Look for ' + subject + ' — photograph the moment before it changes.',
+      'Seek out ' + subject + '. Let the frame contain only what matters.',
+    ];
+    const text = fallbacks[dayOfYear % fallbacks.length];
+    document.getElementById('dailyPromptText').textContent = text;
+  }
+}
+
+function useDailyPrompt() {
+  const text = document.getElementById('dailyPromptText').textContent;
+  if (!text || text === 'Loading…') return;
+  switchInputTab('text');
+  document.getElementById('textIdea').value = text;
+  document.getElementById('textIdea').focus();
+}
+
 // ─── INIT ─────────────────────────────────────────
 window.addEventListener('load', () => {
-  if (getKey()) { showScreen('New'); document.getElementById('bottomNav').style.display='flex'; }
-  else { showScreen('Setup'); }
+  if (getKey()) {
+    showScreen('New');
+    document.getElementById('bottomNav').style.display='flex';
+    loadDailyPrompt();
+  } else {
+    showScreen('Setup');
+  }
 });
 </script>
 </body>
