@@ -367,8 +367,8 @@ input[type="file"] { display: none; }
 <!-- ═══ SETUP ═══ -->
 <div class="screen active" id="screenSetup">
   <!-- BRANDED SETUP LOGO -->
-  <div style="display:flex;flex-direction:column;align-items:center;padding-top:calc(var(--safe-top) + 40px);padding-bottom:10px;flex-shrink:0;">
-    <svg width="280" height="160" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+  <div style="display:flex;flex-direction:column;align-items:center;padding-top:calc(var(--safe-top) + 40px);padding-bottom:10px;flex-shrink:0;pointer-events:none;">
+    <svg width="280" height="160" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none;overflow:visible;">
       <defs>
         <!-- Watercolour splotch filter -->
         <filter id="splotch1" x="-40%" y="-40%" width="180%" height="180%">
@@ -383,7 +383,7 @@ input[type="file"] { display: none; }
           <feGaussianBlur in="displaced2" stdDeviation="8" result="blurred2"/>
           <feComposite in="blurred2" in2="SourceGraphic" operator="in"/>
         </filter>
-        <filter id="splotch3" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="splotch3" x="-30%" y="-30%" width="160%" height="160%">
           <feTurbulence type="fractalNoise" baseFrequency="0.02 0.035" numOctaves="6" seed="3" result="noise3"/>
           <feDisplacementMap in="SourceGraphic" in2="noise3" scale="20" xChannelSelector="R" yChannelSelector="B" result="displaced3"/>
           <feGaussianBlur in="displaced3" stdDeviation="10"/>
@@ -851,11 +851,16 @@ function navTo(s) {
 
 // ─── SETUP ────────────────────────────────────────
 function saveApiKey() {
-  const v = document.getElementById('apiKeyInput').value.trim();
-  if (!v.startsWith('sk-')) { showErr('setupError','That doesn\'t look like a valid key.'); return; }
-  persistKey(v);
-  document.getElementById('bottomNav').style.display = 'flex';
-  showScreen('New');
+  try {
+    const v = document.getElementById('apiKeyInput').value.trim();
+    if (!v.startsWith('sk-')) { showErr('setupError','That doesn\'t look like a valid key.'); return; }
+    persistKey(v);
+    loadDailyPrompt();
+    document.getElementById('bottomNav').style.display = 'flex';
+    showScreen('New');
+  } catch(err) {
+    showErr('setupError', 'Activation error: ' + err.message);
+  }
 }
 function showKeyModal() { document.getElementById('keyModalInput').value = getKey()||''; document.getElementById('keyModal').classList.add('show'); }
 function closeKeyModal() { document.getElementById('keyModal').classList.remove('show'); }
