@@ -517,6 +517,32 @@ input[type="file"] { display: none; }
   <div class="divider"></div>
   <div class="accord-list" id="accordList"></div>
   <div class="divider"></div>
+
+  <!-- CGDREAM PROMPT -->
+  <div style="margin-bottom:22px;">
+    <div class="eyebrow accent" style="margin-bottom:10px;">CGDream Prompt</div>
+    <p style="font-size:16px;font-style:italic;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">Generate a ready-to-use image prompt for CGDream based on this analysis.</p>
+    <button class="btn btn-ghost btn-full" id="cgdreamBtn" onclick="generateCGDreamPrompt()" style="border-color:rgba(181,98,42,0.3);">
+      <span style="font-size:15px;">◎</span> Generate CGDream Prompt
+    </button>
+    <div id="cgdreamResult" class="hidden" style="margin-top:16px;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+        <div style="padding:16px 18px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:10px;">Ready to paste into CGDream</div>
+          <div id="cgdreamText" style="font-size:15px;font-weight:300;line-height:1.72;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;"></div>
+        </div>
+        <div style="display:flex;gap:0;">
+          <button class="btn btn-sm" onclick="copyCGDreamPrompt()" style="flex:1;border-radius:0;border:none;border-right:1px solid var(--border-subtle);">⊕ Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveCGDreamPrompt()" style="flex:1;border-radius:0;border:none;border-right:1px solid var(--border-subtle);">Save with Analysis</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cgdreamResult').classList.add('hidden')" style="flex:1;border-radius:0;border:none;">✕</button>
+        </div>
+      </div>
+      <div id="cgdreamMsg" style="display:none;margin-top:8px;font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.25em;color:var(--sienna);text-align:center;"></div>
+    </div>
+    <div class="error-box mt8" id="cgdreamError"></div>
+  </div>
+
+  <div class="divider"></div>
   <div class="eyebrow accent" style="margin-bottom:12px;">Save to Library</div>
   <div class="field-group">
     <div class="eyebrow">Add to collections</div>
@@ -645,7 +671,21 @@ input[type="file"] { display: none; }
   <div class="detail-actions">
     <button class="btn btn-sm" onclick="showShareCardFromDetail()">↗ Share Card</button>
     <button class="btn btn-ghost btn-sm" onclick="printDetail()">⊟ Export</button>
+    <button class="btn btn-ghost btn-sm" onclick="generateCGDreamFromDetail()">◎ CGDream</button>
     <button class="btn btn-danger btn-sm" onclick="deleteCurrentDetail()">⊖ Delete</button>
+  </div>
+  <div id="cgdreamDetailResult" class="hidden" style="margin-top:16px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+      <div style="padding:16px 18px;border-bottom:1px solid var(--border-subtle);">
+        <div style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.4em;color:var(--sienna);margin-bottom:10px;">CGDream Prompt</div>
+        <div id="cgdreamDetailText" style="font-size:15px;font-weight:300;line-height:1.72;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;"></div>
+      </div>
+      <div style="display:flex;gap:0;">
+        <button class="btn btn-sm" onclick="copyCGDreamDetailPrompt()" style="flex:1;border-radius:0;border:none;border-right:1px solid var(--border-subtle);">⊕ Copy</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cgdreamDetailResult').classList.add('hidden')" style="flex:1;border-radius:0;border:none;">✕</button>
+      </div>
+    </div>
+    <div id="cgdreamDetailMsg" style="display:none;margin-top:8px;font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.25em;color:var(--sienna);text-align:center;"></div>
   </div>
 </div>
 
@@ -1391,6 +1431,159 @@ Write in Signal9's voice: precise, honest, unsentimental. This is not encouragem
     btn.disabled = false;
     btn.innerHTML = '<span style="font-size:15px;">◎</span> Find What\'s Missing';
   }
+}
+
+// ─── CGDREAM PROMPT GENERATOR ─────────────────────
+const CGDREAM_SYSTEM = `You are an expert AI image prompt engineer specialising in CGDream. You write detailed, technical prompts that produce fine art digital images in the Signal9 Studio aesthetic.
+
+Signal9 Studio visual language — bake ALL of these into every prompt:
+SUBJECTS: Photorealistic female figures, profile or three-quarter view, eyes closed or cast downward — introspective, never confrontational. Face partially obscured or fragmented.
+STRUCTURAL DEVICES: Fragmentation as the central metaphor — shattered glass overlays, cracking/peeling material, torn collage fragments, geometric tile grids breaking apart, organic forms splitting. The fracture is always intentional and compositionally precise.
+COLOUR: Deep charcoal and ink blacks as ground. Crimson and deep red as the primary emotional accent. Burnt sienna and tarnished gold as structural highlights. Occasional muted sage green. Bone white used sparingly. Never bright, never clean.
+TEXTURE: Photorealism fused with abstract surface material — cracked paint, marble fragments, rusted oxidised metal, peeling layers, organic biological forms, geological fracture patterns.
+BOTANICAL: Roses (deep red, near-black), petals, dried leaves — integrated INTO the structural fracture, not decorating it.
+LIGHT: Dramatic directional rim lighting. Faces emerge from deep shadow. Dark atmospheric backgrounds. No flat or even lighting.
+COMPOSITION: Tight crop, subject fills frame, layered depth with foreground texture elements. Portrait orientation.
+MOOD: Quiet devastation. Contained grief. Structural vulnerability made visible. Elegiac restraint.
+TECHNICAL: Photorealistic render quality, 8K, fine art print resolution, shallow depth of field, cinematic colour grading, dramatic chiaroscuro lighting.
+
+Write prompts in this structure: [Subject description], [structural/fragmentation device], [botanical/texture elements], [colour palette], [lighting], [mood/atmosphere], [technical quality tags].
+No preamble. No explanation. Just the prompt.`;
+
+async function generateCGDreamPrompt() {
+  const key = getKey();
+  if (!key) { showErr('cgdreamError', 'No API key set.'); return; }
+  if (!S.currentAnalysis) { showErr('cgdreamError', 'No analysis to work from.'); return; }
+  clearErr('cgdreamError');
+  const btn = document.getElementById('cgdreamBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="font-size:15px;">◎</span> Generating…';
+  document.getElementById('cgdreamResult').classList.add('hidden');
+
+  try {
+    const prompt = buildCGDreamRequestPrompt(S.currentAnalysis);
+    const res = await callClaude(key, CGDREAM_SYSTEM, prompt, 600);
+    const text = res.trim();
+    document.getElementById('cgdreamText').textContent = text;
+    document.getElementById('cgdreamResult').classList.remove('hidden');
+    document.getElementById('cgdreamResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    window._cgdreamText = text;
+  } catch(e) {
+    showErr('cgdreamError', 'Generation failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span style="font-size:15px;">◎</span> Generate CGDream Prompt';
+  }
+}
+
+async function generateCGDreamFromDetail() {
+  const key = getKey();
+  if (!key) return;
+  const entry = getLib().find(e => e.id === S.currentDetailId);
+  if (!entry) return;
+  const btn = document.querySelector('[onclick="generateCGDreamFromDetail()"]');
+  btn.disabled = true; btn.textContent = '◎ Generating…';
+  document.getElementById('cgdreamDetailResult').classList.add('hidden');
+  try {
+    const prompt = buildCGDreamRequestPrompt(entry);
+    const res = await callClaude(key, CGDREAM_SYSTEM, prompt, 600);
+    const text = res.trim();
+    document.getElementById('cgdreamDetailText').textContent = text;
+    document.getElementById('cgdreamDetailResult').classList.remove('hidden');
+    document.getElementById('cgdreamDetailResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    window._cgdreamDetailText = text;
+  } catch(e) {
+    alert('Generation failed: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '◎ CGDream';
+  }
+}
+
+function buildCGDreamRequestPrompt(analysis) {
+  const title = analysis.title || '';
+  const narrative = analysis.narrative || '';
+  const themes = (analysis.themes?.items || []).join('; ');
+  const mood = (analysis.mood?.items || []).join('; ');
+  const palette = (analysis.palette?.swatches || []).map(s => s.name).join(', ');
+  const texture = (analysis.texture?.items || []).join('; ');
+  const composition = (analysis.composition?.items || []).join('; ');
+  const seeds = (analysis.seeds?.items || []).slice(0, 2).join('; ');
+
+  const lines = [
+    'Using the Signal9 Studio aesthetic, write ONE complete CGDream image prompt inspired by this analysis.',
+    '',
+    'Analysis title: ' + title,
+    'Atmospheric reading: ' + narrative,
+    'Thematic threads: ' + themes,
+    'Mood: ' + mood,
+    'Colour territory: ' + palette,
+    'Texture and materiality: ' + texture,
+    'Compositional elements: ' + composition,
+    'Piece direction seeds: ' + seeds,
+    '',
+    'Generate a single detailed CGDream prompt that translates these elements into a concrete, technically precise image description. The prompt should feel like it belongs in the Signal9 collection — it should be unexpected, precise, and carry genuine emotional weight.'
+  ];
+  return lines.join('\n');
+}
+
+function copyCGDreamPrompt() {
+  const text = window._cgdreamText || document.getElementById('cgdreamText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('cgdreamMsg');
+    msg.textContent = 'Copied to clipboard';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2000);
+  }).catch(() => {
+    // Fallback for older iOS
+    const el = document.getElementById('cgdreamText');
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    const msg = document.getElementById('cgdreamMsg');
+    msg.textContent = 'Copied';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2000);
+  });
+}
+
+function copyCGDreamDetailPrompt() {
+  const text = window._cgdreamDetailText || document.getElementById('cgdreamDetailText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('cgdreamDetailMsg');
+    msg.textContent = 'Copied to clipboard';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2000);
+  }).catch(() => {
+    const el = document.getElementById('cgdreamDetailText');
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    const msg = document.getElementById('cgdreamDetailMsg');
+    msg.textContent = 'Copied';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2000);
+  });
+}
+
+function saveCGDreamPrompt() {
+  const text = window._cgdreamText || document.getElementById('cgdreamText').textContent;
+  if (!text || !S.currentAnalysis) return;
+  // Save to current analysis object so it gets stored when user hits Save
+  S.currentAnalysis._cgdream = text;
+  // Also save immediately if this analysis is already in the library
+  const lib = getLib();
+  const idx = lib.findIndex(e => e._ts === S.currentAnalysis._ts);
+  if (idx >= 0) { lib[idx]._cgdream = text; saveLib(lib); }
+  const msg = document.getElementById('cgdreamMsg');
+  msg.textContent = 'Saved with analysis';
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 2000);
 }
 
 // ─── DAILY PROMPT ─────────────────────────────────
