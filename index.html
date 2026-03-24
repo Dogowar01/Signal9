@@ -1741,21 +1741,34 @@ function buildCGDreamRequestPrompt(analysis) {
   const palette = (analysis.palette?.swatches || []).map(s => s.name).join(', ');
   const texture = (analysis.texture?.items || []).join('; ');
   const composition = (analysis.composition?.items || []).join('; ');
-  const seeds = (analysis.seeds?.items || []).slice(0, 2).join('; ');
+  const seeds = (analysis.seeds?.items || []).slice(0, 3).join('; ');
+  const language = (analysis.language?.items || []).slice(0, 2).join('; ');
 
   const lines = [
-    'Using the Signal9 Studio aesthetic, write ONE complete CGDream image prompt inspired by this analysis.',
+    'You are generating a CGDream image prompt for Signal9 Studio. This is a creative act, not a template exercise.',
     '',
-    'Analysis title: ' + title,
+    'Here is the full analysis to draw inspiration from:',
+    '',
+    'Title: ' + title,
     'Atmospheric reading: ' + narrative,
     'Thematic threads: ' + themes,
-    'Mood: ' + mood,
+    'Mood and atmosphere: ' + mood,
     'Colour territory: ' + palette,
     'Texture and materiality: ' + texture,
     'Compositional elements: ' + composition,
     'Piece direction seeds: ' + seeds,
+    'Artist statement fragments: ' + language,
     '',
-    'Generate a single detailed CGDream prompt that translates these elements into a concrete, technically precise image description. The prompt should feel like it belongs in the Signal9 collection — it should be unexpected, precise, and carry genuine emotional weight.'
+    'Now write ONE CGDream image prompt. The prompt must:',
+    '- Be genuinely inspired by THIS analysis specifically — not generic Signal9 imagery',
+    '- Choose one dominant idea, image, or tension from the analysis and build the entire prompt around it',
+    '- Let the atmospheric reading and thematic threads drive the visual choices — what IS the grief here, what does the fracture look like, what specific thing is contained',
+    '- Use the colour palette names and textures as literal visual instructions, not just mood words',
+    '- Feel surprising — the image described should be something the artist could not have predicted but immediately recognises as right',
+    '- Be technically precise enough to actually produce the image in CGDream',
+    '- Select the visual register (portrait fragmentation, architectural ink, nocturne oil, sumi-e ink, neon split) that BEST serves what this analysis is actually about',
+    '',
+    'One prompt. No preamble. No explanation. No register label. Start directly with the image.'
   ];
   return lines.join('\n');
 }
