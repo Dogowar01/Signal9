@@ -11,14 +11,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Cormorant+SC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --sienna: #b5622a;
-  --sienna-mid: rgba(181,98,42,0.25);
-  --sienna-dim: rgba(181,98,42,0.14);
-  --sienna-glow: rgba(181,98,42,0.08);
+  --sienna: #c4687a;
+  --sienna-mid: rgba(196,104,122,0.25);
+  --sienna-dim: rgba(196,104,122,0.14);
+  --sienna-glow: rgba(196,104,122,0.08);
   --ink: #0c0b09;
   --surface: #111009;
   --card: #191612;
-  --border: rgba(181,98,42,0.22);
+  --border: rgba(196,104,122,0.25);
   --border-subtle: rgba(255,255,255,0.08);
   --border-faint: rgba(255,255,255,0.045);
   --text: #f0d98a;
@@ -136,7 +136,7 @@ option { background: var(--card); }
 }
 .btn:active { background: var(--sienna-dim); }
 .btn-primary { background: var(--sienna); color: #0c0b09; border-color: var(--sienna); font-weight: 500; }
-.btn-primary:active { background: #9e5423; }
+.btn-primary:active { background: #a84d60; }
 .btn-primary:disabled { opacity: 0.35; pointer-events: none; }
 .btn-ghost { border-color: var(--border-subtle); color: var(--text-dim); }
 .btn-ghost:active { background: rgba(255,255,255,0.04); }
@@ -179,7 +179,7 @@ input[type="file"] { display: none; }
 
 /* ── OUTPUT ── */
 .output-title { font-size: 34px; font-weight: 300; font-style: italic; line-height: 1.18; color: var(--text); margin-bottom: 8px; }
-.output-title[title] { border-bottom: 1px dashed rgba(181,98,42,0.25); display: inline-block; }
+.output-title[title] { border-bottom: 1px dashed rgba(196,104,122,0.25); display: inline-block; }
 .output-meta { font-family: 'Cormorant SC'; font-size: 11px; letter-spacing: 0.25em; color: var(--text-muted); margin-bottom: 28px; }
 
 .narrative-block {
@@ -449,7 +449,7 @@ input[type="file"] { display: none; }
       <span style="font-family:'Cormorant SC',serif;font-size:9px;letter-spacing:0.35em;color:var(--text-muted);">or</span>
       <div style="flex:1;height:1px;background:var(--border-subtle);"></div>
     </div>
-    <button class="btn btn-ghost btn-full" id="oracleBtn" onclick="consultOracle()" style="border-color:rgba(181,98,42,0.3);">
+    <button class="btn btn-ghost btn-full" id="oracleBtn" onclick="consultOracle()" style="border-color:rgba(196,104,122,0.3);">
       <span style="font-size:16px;">✦</span> Consult the Oracle
     </button>
     <div id="oracleResult" class="hidden" style="margin-top:16px;">
@@ -522,7 +522,7 @@ input[type="file"] { display: none; }
   <div style="margin-bottom:22px;">
     <div class="eyebrow accent" style="margin-bottom:10px;">CGDream Prompt</div>
     <p style="font-size:16px;font-style:italic;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">Generate a ready-to-use image prompt for CGDream based on this analysis.</p>
-    <button class="btn btn-ghost btn-full" id="cgdreamBtn" onclick="generateCGDreamPrompt()" style="border-color:rgba(181,98,42,0.3);">
+    <button class="btn btn-ghost btn-full" id="cgdreamBtn" onclick="generateCGDreamPrompt()" style="border-color:rgba(196,104,122,0.3);">
       <span style="font-size:15px;">◎</span> Generate CGDream Prompt
     </button>
     <div id="cgdreamResult" class="hidden" style="margin-top:16px;">
@@ -562,7 +562,7 @@ input[type="file"] { display: none; }
   <div class="error-box mt8" id="outputError"></div>
 
   <div style="margin-top:8px;">
-    <button class="btn btn-ghost btn-full" id="journalBtn" onclick="writeSessionJournal()" style="border-color:rgba(181,98,42,0.2);font-size:11px;">&#10022; Write Session Journal Entry</button>
+    <button class="btn btn-ghost btn-full" id="journalBtn" onclick="writeSessionJournal()" style="border-color:rgba(196,104,122,0.2);font-size:11px;">&#10022; Write Session Journal Entry</button>
     <div id="journalResult" class="hidden" style="margin-top:16px;">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
         <div style="padding:18px 20px;border-bottom:1px solid var(--border-subtle);">
@@ -630,7 +630,7 @@ input[type="file"] { display: none; }
     <div style="height:1px;background:var(--border-subtle);margin-bottom:24px;"></div>
     <div class="eyebrow accent" style="margin-bottom:8px;">What's Missing</div>
     <p style="font-size:16px;font-style:italic;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Blind spots and unexplored territory in your practice.</p>
-    <button class="btn btn-ghost btn-full" id="missingBtn" onclick="findMissing()" style="border-color:rgba(181,98,42,0.3);margin-bottom:16px;">
+    <button class="btn btn-ghost btn-full" id="missingBtn" onclick="findMissing()" style="border-color:rgba(196,104,122,0.3);margin-bottom:16px;">
       <span style="font-size:15px;">◎</span> Find What's Missing
     </button>
     <div id="missingResult" class="hidden">
@@ -668,7 +668,7 @@ input[type="file"] { display: none; }
       <div class="eyebrow">Select a Collection</div>
       <select id="readinessSelect" style="font-size:17px;"><option value="">Choose collection…</option></select>
     </div>
-    <button class="btn btn-ghost btn-full" id="readinessBtn" onclick="checkCollectionReadiness()" style="border-color:rgba(181,98,42,0.3);margin-bottom:16px;">
+    <button class="btn btn-ghost btn-full" id="readinessBtn" onclick="checkCollectionReadiness()" style="border-color:rgba(196,104,122,0.3);margin-bottom:16px;">
       <span style="font-size:15px;">&#9678;</span> Assess Readiness
     </button>
     <div id="readinessResult" class="hidden">
@@ -1238,25 +1238,25 @@ function printDetail() {
 function showExportModal(entry) {
   const secs=['palette','composition','texture','mood','themes','seeds','language'];
   let html = `<h1 style="font-size:26px;font-weight:300;font-style:italic;color:#e6ddd0;margin-bottom:8px;">${entry.title||'Untitled'}</h1>`;
-  html += `<p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:rgba(181,98,42,0.8);margin-bottom:20px;">Signal9 Studio</p>`;
+  html += `<p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:rgba(196,104,122,0.8);margin-bottom:20px;">Signal9 Studio</p>`;
   // Image — embed base64 directly so it works offline and in print
   if (entry._input?.imageB64) {
     html += `<img src="data:${entry._input.imageType};base64,${entry._input.imageB64}" style="width:100%;border-radius:3px;margin-bottom:20px;display:block;object-fit:cover;">`;
   }
-  html += `<div style="border-left:2px solid #b5622a;padding:16px 18px;margin-bottom:24px;background:rgba(181,98,42,0.06);">`;
+  html += `<div style="border-left:2px solid #c4687a;padding:16px 18px;margin-bottom:24px;background:rgba(196,104,122,0.06);">`;
   html += `<p style="font-style:italic;font-size:17px;line-height:1.78;color:#e6ddd0;margin:0;">${entry.narrative||''}</p></div>`;
   secs.forEach(k=>{
     const s=entry[k]; if(!s) return;
-    html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#b5622a;margin-bottom:10px;">${s.label}</p>`;
+    html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#c4687a;margin-bottom:10px;">${s.label}</p>`;
     if (s.items) html+='<ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:8px;">'
-      +s.items.map(i=>`<li style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;display:flex;gap:10px;"><span style="color:#b5622a;flex-shrink:0;">—</span><span>${i}</span></li>`).join('')+'</ul>';
+      +s.items.map(i=>`<li style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;display:flex;gap:10px;"><span style="color:#c4687a;flex-shrink:0;">—</span><span>${i}</span></li>`).join('')+'</ul>';
     if (s.notes) html+=`<p style="font-size:14px;color:rgba(230,221,208,0.55);margin-top:10px;line-height:1.6;">${s.notes}</p>`;
     html+='</div>';
   });
-  if (entry._notes) html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#b5622a;margin-bottom:10px;">Notes</p><p style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;">${entry._notes}</p></div>`;
+  if (entry._notes) html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#c4687a;margin-bottom:10px;">Notes</p><p style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;">${entry._notes}</p></div>`;
   if (entry._refinements && entry._refinements.length) {
     entry._refinements.forEach(r=>{
-      html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#b5622a;margin-bottom:10px;">${r.label}</p><p style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;">${r.text}</p></div>`;
+      html+=`<div style="margin-bottom:20px;"><p style="font-family:'Cormorant SC',serif;font-size:10px;letter-spacing:0.3em;color:#c4687a;margin-bottom:10px;">${r.label}</p><p style="font-size:16px;color:rgba(230,221,208,0.72);line-height:1.65;">${r.text}</p></div>`;
     });
   }
   document.getElementById('exportContent').innerHTML = html;
@@ -1273,12 +1273,12 @@ function doPrint() {
   const imgTag = entry._input?.imageB64
     ? `<img src="data:${entry._input.imageType};base64,${entry._input.imageB64}" style="width:100%;max-height:420px;object-fit:cover;margin-bottom:28px;display:block;">`
     : '';
-  let body=`<h1>${entry.title}</h1><p style="font-family:Georgia,serif;font-size:11px;letter-spacing:0.3em;color:#b5622a;margin-bottom:20px;">Signal9 Studio</p>${imgTag}<p style="font-style:italic;margin-bottom:24px;">${entry.narrative}</p>`;
+  let body=`<h1>${entry.title}</h1><p style="font-family:Georgia,serif;font-size:11px;letter-spacing:0.3em;color:#c4687a;margin-bottom:20px;">Signal9 Studio</p>${imgTag}<p style="font-style:italic;margin-bottom:24px;">${entry.narrative}</p>`;
   secs.forEach(k=>{const s=entry[k];if(!s)return;body+=`<h3>${s.label}</h3>`;if(s.items)body+='<ul>'+s.items.map(i=>`<li>${i}</li>`).join('')+'</ul>';if(s.notes)body+=`<p>${s.notes}</p>`;});
   if (entry._notes) body+=`<h3>Notes</h3><p>${entry._notes}</p>`;
   if (entry._refinements&&entry._refinements.length) entry._refinements.forEach(r=>{body+=`<h3>${r.label}</h3><p>${r.text}</p>`;});
   const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>${entry.title}</title><style>body{font-family:Georgia,serif;max-width:680px;margin:40px auto;padding:20px;color:#1a1a1a;line-height:1.7}h1{font-size:28px;font-weight:400;font-style:italic}h3{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:24px 0 8px;color:#b5622a}ul{padding-left:20px}li{margin-bottom:6px}p{margin-bottom:12px}@media print{body{margin:20px}}</style></head><body>${body}</body></html>`);
+  win.document.write(`<!DOCTYPE html><html><head><title>${entry.title}</title><style>body{font-family:Georgia,serif;max-width:680px;margin:40px auto;padding:20px;color:#1a1a1a;line-height:1.7}h1{font-size:28px;font-weight:400;font-style:italic}h3{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;margin:24px 0 8px;color:#c4687a}ul{padding-left:20px}li{margin-bottom:6px}p{margin-bottom:12px}@media print{body{margin:20px}}</style></head><body>${body}</body></html>`);
   win.document.close(); win.print();
 }
 
