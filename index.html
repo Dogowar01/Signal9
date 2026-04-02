@@ -825,6 +825,7 @@ const REFINE_PROMPTS = {
 let S = {
   activeInputTab: 'photo',
   imageB64: null, imageType: null,
+  thumbB64: null, thumbType: null,
   currentInput: null, currentAnalysis: null,
   currentDetailId: null,
   libView: 'grid',
@@ -912,21 +913,37 @@ function switchInputTab(t) {
 }
 
 // ─── IMAGE ────────────────────────────────────────
+function resizeImage(img, maxPx, type, quality) {
+  const canvas = document.createElement('canvas');
+  let w = img.width, h = img.height;
+  if (w > maxPx || h > maxPx) {
+    if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+    else { w = Math.round(w * maxPx / h); h = maxPx; }
+  }
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL(type || 'image/jpeg', quality || 0.85);
+}
+
 function handleImage(input) {
   const file = input.files[0]; if (!file) return;
   const img = new Image();
   const reader = new FileReader();
   reader.onload = e => {
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const MAX = 1024; let w = img.width, h = img.height;
-      if (w > MAX || h > MAX) { if (w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;} }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      S.imageB64 = canvas.toDataURL(file.type).split(',')[1];
+      // Full size (1024px) for API analysis — stays in memory only, not stored
+      const fullDataUrl = resizeImage(img, 1024, file.type, 0.9);
+      S.imageB64 = fullDataUrl.split(',')[1];
       S.imageType = file.type;
+
+      // Thumbnail (320px, JPEG 0.7) for library storage — ~15-25KB instead of 300-500KB
+      const thumbDataUrl = resizeImage(img, 320, 'image/jpeg', 0.7);
+      S.thumbB64 = thumbDataUrl.split(',')[1];
+      S.thumbType = 'image/jpeg';
+
+      // Preview uses full size for quality on screen
       const p = document.getElementById('photoPreview');
-      p.src = canvas.toDataURL(file.type); p.style.display = 'block';
+      p.src = fullDataUrl; p.style.display = 'block';
       document.getElementById('photoPlaceholder').style.display = 'none';
     };
     img.src = e.target.result;
@@ -940,7 +957,9 @@ async function startAnalysis() {
   const key = getKey(); if (!key) { showErr('newError','No API key set.'); return; }
   if (S.activeInputTab === 'photo' && !S.imageB64) { showErr('newError','Please select or take a photo first.'); return; }
   if (S.activeInputTab === 'text' && !document.getElementById('textIdea').value.trim()) { showErr('newError','Please enter an idea or observation.'); return; }
+  // Store full image in currentInput for API call — thumb swap happens only on save
   S.currentInput = { type: S.activeInputTab, imageB64: S.imageB64, imageType: S.imageType, context: document.getElementById('photoContext').value.trim(), text: document.getElementById('textIdea').value.trim() };
+  S.currentAnalysis = null; // reset so thumb swap doesn't happen on stale data
   await runAnalysis(key);
 }
 
@@ -1039,6 +1058,11 @@ function saveAnalysis() {
   const tags = [...document.querySelectorAll('#saveTagRow .tag.selected')].map(t=>t.textContent);
   const notes = document.getElementById('outputNotes').value.trim();
   const lib = getLib();
+  // Store thumbnail (small) not full image to keep localStorage under limit
+  if (S.currentAnalysis._input && S.thumbB64) {
+    S.currentAnalysis._input.imageB64 = S.thumbB64;
+    S.currentAnalysis._input.imageType = S.thumbType;
+  }
   const entry = { id:Date.now().toString(), ...S.currentAnalysis, collections:tags, _notes:notes };
   lib.unshift(entry); saveLib(lib);
   const btn = document.querySelector('[onclick="saveAnalysis()"]');
@@ -1047,7 +1071,7 @@ function saveAnalysis() {
 }
 
 function goNew() {
-  S.imageB64=null; S.imageType=null; S.currentAnalysis=null;
+  S.imageB64=null; S.imageType=null; S.thumbB64=null; S.thumbType=null; S.currentAnalysis=null;
   const p=document.getElementById('photoPreview'); p.src=''; p.style.display='none';
   document.getElementById('photoPlaceholder').style.display='';
   document.getElementById('photoContext').value='';
