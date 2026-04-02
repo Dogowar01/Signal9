@@ -853,7 +853,52 @@ function getKey() {
 function clearKey() { window._s9key=null; try{localStorage.removeItem('s9_key');}catch(e){} try{sessionStorage.removeItem('s9_key');}catch(e){} try{document.cookie='s9k=;max-age=0';}catch(e){} }
 
 const getLib = () => { try { return JSON.parse(localStorage.getItem('s9_lib') || '[]'); } catch(e){ return []; } };
-const saveLib = l => { try { localStorage.setItem('s9_lib', JSON.stringify(l)); } catch(e){} };
+const saveLib = l => {
+  // Compress any full-size images down to thumbnails before storing
+  const compressed = l.map(entry => {
+    if (!entry._input || !entry._input.imageB64) return entry;
+    // If image is large (over ~30KB base64 = ~40KB encoded), compress it
+    if (entry._input.imageB64.length > 40000) {
+      try {
+        const img = new Image();
+        const dataUrl = 'data:' + (entry._input.imageType || 'image/jpeg') + ';base64,' + entry._input.imageB64;
+        const canvas = document.createElement('canvas');
+        // Synchronous resize to 300px for storage
+        img.src = dataUrl;
+        if (img.width > 0) {
+          const MAX = 300;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const small = canvas.toDataURL('image/jpeg', 0.65).split(',')[1];
+          return { ...entry, _input: { ...entry._input, imageB64: small, imageType: 'image/jpeg' } };
+        }
+      } catch(e) {}
+    }
+    return entry;
+  });
+  try {
+    localStorage.setItem('s9_lib', JSON.stringify(compressed));
+  } catch(e) {
+    // Storage full — try removing images from oldest entries and retry
+    try {
+      const stripped = compressed.map((entry, i) => {
+        if (i < 5) return entry; // keep images on newest 5
+        if (entry._input) return { ...entry, _input: { ...entry._input, imageB64: null } };
+        return entry;
+      });
+      localStorage.setItem('s9_lib', JSON.stringify(stripped));
+      console.warn('Storage full: removed images from older entries');
+    } catch(e2) {
+      console.error('Storage completely full:', e2);
+      alert('Storage is full. Please delete some older analyses from your library to continue saving.');
+    }
+  }
+};
 const getColls = () => { try { return JSON.parse(localStorage.getItem('s9_colls') || '["The Quiet Fracture"]'); } catch(e){ return ["The Quiet Fracture"]; } };
 const saveColls = c => { try { localStorage.setItem('s9_colls', JSON.stringify(c)); } catch(e){} };
 
@@ -1922,8 +1967,47 @@ function useDailyPrompt() {
 }
 
 // ─── INIT ─────────────────────────────────────────
+function migrateLibraryImages() {
+  // Compress any full-size images already in storage from before thumbnail fix
+  try {
+    const lib = JSON.parse(localStorage.getItem('s9_lib') || '[]');
+    let needsSave = false;
+    const migrated = lib.map(entry => {
+      if (!entry._input || !entry._input.imageB64) return entry;
+      if (entry._input.imageB64.length <= 40000) return entry; // already small
+      // Compress it
+      try {
+        const img = new Image();
+        img.src = 'data:' + (entry._input.imageType || 'image/jpeg') + ';base64,' + entry._input.imageB64;
+        if (img.width > 0) {
+          const canvas = document.createElement('canvas');
+          const MAX = 300;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          const small = canvas.toDataURL('image/jpeg', 0.65).split(',')[1];
+          needsSave = true;
+          return { ...entry, _input: { ...entry._input, imageB64: small, imageType: 'image/jpeg' } };
+        }
+      } catch(e) {}
+      return entry;
+    });
+    if (needsSave) {
+      localStorage.setItem('s9_lib', JSON.stringify(migrated));
+      console.log('Library images compressed for storage efficiency');
+    }
+  } catch(e) {
+    console.warn('Migration failed:', e);
+  }
+}
+
 window.addEventListener('load', () => {
   if (getKey()) {
+    migrateLibraryImages();
     showScreen('New');
     document.getElementById('bottomNav').style.display='flex';
     loadDailyPrompt();
